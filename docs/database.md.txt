@@ -1,0 +1,20 @@
+users
+- id
+- name
+- email
+- password
+- role
+
+books
+- id
+- category_id
+- title
+- author
+- stock
+
+borrowings
+- id
+- user_id
+- book_id
+- borrow_date
+- return_date

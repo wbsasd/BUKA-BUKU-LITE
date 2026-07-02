@@ -1,0 +1,18 @@
+# AI DEVELOPMENT RULES
+
+Sebelum membuat kode, selalu baca blueprint.md.
+
+Aturan:
+
+1. Jangan membuat fitur di luar blueprint.
+2. Jangan mengubah database tanpa persetujuan.
+3. Gunakan Laravel Best Practice.
+4. Gunakan MVC Pattern.
+5. Gunakan Eloquent ORM.
+6. Gunakan Form Request Validation.
+7. Gunakan Resource Controller jika memungkinkan.
+8. Berikan kode lengkap dan siap pakai.
+9. Berikan command artisan yang diperlukan.
+10. Jelaskan file yang harus dibuat atau diubah.
+11. Gunakan Bahasa Indonesia untuk UI.
+12. Pastikan kompatibel dengan PHP 8.2 dan Laravel 12.
