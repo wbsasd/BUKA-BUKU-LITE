@@ -20,19 +20,58 @@ Route::get('/reader/{id}', function ($id) {
 
 // Admin authentication and dashboard
 Route::prefix('admin')->group(function () {
-    // Admin login pages
+    // Admin login pages (no auth/role middleware)
     Route::get('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('admin.login');
     Route::post('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'login'])->name('admin.login.post');
-    Route::post('logout', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])->name('admin.logout');
 
-    // Protected admin routes
-    Route::middleware([\App\Http\Middleware\EnsureAdmin::class])->group(function () {
+    // Logout: only accessible by authenticated admin users
+    Route::post('logout', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])
+        ->middleware(['auth', 'role:admin'])
+        ->name('admin.logout');
+
+    // Back-compat: beberapa menu kemungkinan masih memakai URL lama /admin/logout
+    // Jika route ini tidak dipakai, tidak berdampak.
+    Route::post('/logout', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])
+        ->middleware(['auth', 'role:admin'])
+        ->name('admin.logout.legacy');
+
+    // Protected admin routes (must be auth + role:admin)
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+        // Dashboard
         Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
 
-        // Admin user management
+        // Books
+        Route::resource('books', \App\Http\Controllers\Admin\BookController::class, ['as' => 'admin']);
+
+        // Categories
+        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class, ['as' => 'admin']);
+
+        // Borrowings
+        Route::resource('borrowings', \App\Http\Controllers\Admin\BorrowingController::class, ['as' => 'admin']);
+
+        // Membership
+        Route::resource('memberships', \App\Http\Controllers\Admin\MembershipController::class, ['as' => 'admin']);
+
+        // Settings
+        Route::resource('settings', \App\Http\Controllers\Admin\SettingController::class, ['as' => 'admin']);
+
+        // Users
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class, ['as' => 'admin']);
 
-        // Additional admin routes (reports already defined below)
+        // Reset Password (custom action)
+        Route::post('users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])
+            ->name('admin.users.reset-password');
+
+
+        // Reports
+        Route::get('laporan', [\App\Http\Controllers\Admin\ReportController::class, 'index'])
+            ->name('admin.reports.index');
+
+        Route::get('laporan/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])
+            ->name('admin.reports.export.pdf');
+
+        Route::get('laporan/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportExcel'])
+            ->name('admin.reports.export.excel');
     });
 });
 
@@ -50,16 +89,5 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
-// Laporan Admin
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/laporan', [\App\Http\Controllers\Admin\ReportController::class, 'index'])
-        ->name('admin.reports.index');
-
-    Route::get('/admin/laporan/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPdf'])
-        ->name('admin.reports.export.pdf');
-
-    Route::get('/admin/laporan/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportExcel'])
-        ->name('admin.reports.export.excel');
-});
 
 

@@ -3,16 +3,8 @@
 @section('content')
 <div class="container-fluid">
   <div class="row">
-    <aside class="col-12 col-md-3 col-lg-2 mb-3">
-      <x-sidebar>
-        <a class="nav-link" href="{{ route('home') }}">Beranda</a>
-        <a class="nav-link" href="#">Discover</a>
-        <a class="nav-link" href="#">Wishlist</a>
-        <a class="nav-link" href="#">Pengaturan</a>
-      </x-sidebar>
-    </aside>
-
     <main class="col-lg-9 col-12 py-4">
+
       <div>
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div>

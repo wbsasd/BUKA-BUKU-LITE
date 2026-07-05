@@ -11,17 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Migration duplikat: tabel books sudah ada dari migration lain.
-        // Dibiarkan kosong agar migrate tetap berjalan.
+        // no-op: duplikat migration untuk books.
+        // Tetap dipertahankan untuk menjaga histori project.
     }
-
-
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('books');
+        // no-op
     }
 };
+

@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
 use App\Http\Requests\Admin\UserStoreRequest;
 use App\Http\Requests\Admin\UserUpdateRequest;
+use App\Http\Requests\Admin\UserResetPasswordRequest;
+
 
 class UserController extends Controller
 {
@@ -53,10 +54,17 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'User deleted');
     }
 
-    public function resetPassword(User $user)
+    public function show(User $user)
     {
-        $user->password = bcrypt('password123');
+        return view('admin.users.show', compact('user'));
+    }
+
+    public function resetPassword(UserResetPasswordRequest $request, User $user)
+    {
+        $data = $request->validated();
+        $user->password = bcrypt($data['password']);
         $user->save();
-        return redirect()->route('admin.users.index')->with('success', 'Password reset');
+
+        return redirect()->route('admin.users.index')->with('success', 'Password reset berhasil');
     }
 }

@@ -39,14 +39,18 @@
                 </div>
 
                 <x-sidebar title="Admin">
-                    <a class="nav-link" href="#admin-dashboard" data-bs-toggle="pill">Dashboard</a>
-                    <a class="nav-link" href="#admin-books" data-bs-toggle="pill">Books</a>
-                    <a class="nav-link" href="#admin-categories" data-bs-toggle="pill">Categories</a>
-                    <a class="nav-link" href="#admin-borrowings" data-bs-toggle="pill">Borrowings</a>
-                    <a class="nav-link" href="#admin-membership" data-bs-toggle="pill">Membership</a>
-                    <a class="nav-link" href="#admin-reports" data-bs-toggle="pill">Reports</a>
-                    <a class="nav-link" href="#admin-users" data-bs-toggle="pill">Users</a>
-                    <a class="nav-link" href="#admin-settings" data-bs-toggle="pill">Settings</a>
+                    <a class="nav-link" href="{{ route('admin.dashboard') }}">Dashboard</a>
+
+                    <a class="nav-link" href="{{ route('admin.books.index') }}">Books</a>
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Categories</a>
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Borrowings</a>
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Membership</a>
+
+
+                    <a class="nav-link" href="{{ route('admin.reports.index') }}">Reports</a>
+                    <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
+
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Settings</a>
                 </x-sidebar>
             </div>
         </aside>
@@ -68,7 +72,7 @@
                             </div>
                         @endauth
 
-                        <form method="POST" action="{{ route('admin.logout') }}" class="m-0">
+                        <form method="POST" action="{{ route('admin.logout.legacy') }}" class="m-0">
                             @csrf
                             <button class="btn btn-outline-secondary btn-sm" type="submit">Logout</button>
                         </form>

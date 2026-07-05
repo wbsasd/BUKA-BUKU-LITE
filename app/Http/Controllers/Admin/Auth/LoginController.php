@@ -27,9 +27,14 @@ class LoginController extends Controller
 
             $user = Auth::user();
             if ($user->role !== 'admin') {
+                // Pastikan state session tidak menyisakan user admin/role lama
                 Auth::logout();
-                return back()->withErrors(['email' => 'Unauthorized for admin area.']);
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->withErrors(['email' => 'Unauthorized for admin area.']);
             }
+
 
             return redirect()->intended(route('admin.dashboard'));
         }

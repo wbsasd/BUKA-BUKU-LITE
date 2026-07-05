@@ -13,11 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create/ensure default test user for manual login
+        $this->call(\Database\Seeders\TestUserSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Create default admin if none exists
+        $this->call(\Database\Seeders\AdminSeeder::class);
+
     }
 }

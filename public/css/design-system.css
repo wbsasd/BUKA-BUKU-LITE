@@ -1,0 +1,28 @@
+/* Design system base styles */
+body {
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Color Emoji', 'Apple Color Emoji';
+}
+
+.bg-guest {
+  background: linear-gradient(135deg, #f5f7ff 0%, #eef2ff 100%);
+}
+
+.guest-card {
+  border-radius: 28px;
+  background: rgba(255,255,255,0.96);
+}
+
+input.form-control {
+  border-radius: 12px;
+}
+
+button.btn-primary {
+  border-radius: 12px;
+}
+
+/* PDF reader styles */
+.pdf-reader-wrapper{position:relative}
+.pdf-viewer img{width:100%;height:auto;object-fit:contain}
+.pdf-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;color:#fff;z-index:50}
+.pdf-overlay .card{background:transparent;border:none;color:#fff}
+.pdf-overlay .btn{min-width:140px}
