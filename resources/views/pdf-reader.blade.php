@@ -22,7 +22,12 @@
                     <button id="prevBtn" class="btn btn-outline-secondary btn-sm" type="button">&laquo; Prev</button>
                     <button id="nextBtn" class="btn btn-outline-secondary btn-sm" type="button">Next &raquo;</button>
                   </div>
-                  <div class="small text-muted">Halaman <span id="pageNum">1</span> / <span id="totalPages">1</span></div>
+                  <div class="small text-muted d-flex align-items-center gap-2">
+                    <label for="pageNumberInput" class="mb-0">Halaman</label>
+                    <input id="pageNumberInput" type="number" min="1" class="form-control form-control-sm" style="width:70px;" value="1">
+                    <span>/</span>
+                    <span id="totalPages">1</span>
+                  </div>
                   <div class="d-flex gap-2">
                     <button id="zoomOutBtn" class="btn btn-outline-secondary btn-sm" type="button">Zoom Out</button>
                     <button id="zoomInBtn" class="btn btn-outline-secondary btn-sm" type="button">Zoom In</button>
@@ -131,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function(){
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const upgradeBtn = document.getElementById('upgradeBtn');
   const closeOverlayBtn = document.getElementById('closeOverlayBtn');
-  const pageNumEl = document.getElementById('pageNum');
+  const pageNumberInput = document.getElementById('pageNumberInput');
   const totalPagesEl = document.getElementById('totalPages');
   const pdfStatusEl = document.getElementById('pdfStatus');
   const canvas = document.getElementById('pdfCanvas');
@@ -172,7 +177,9 @@ document.addEventListener('DOMContentLoaded', function(){
       const viewport = page.getViewport({ scale: currentScale });
       canvas.height = viewport.height;
       canvas.width = viewport.width;
-      pageNumEl.textContent = currentPage;
+      if (pageNumberInput) {
+        pageNumberInput.value = currentPage;
+      }
       totalPagesEl.textContent = totalPages;
 
       const renderContext = {
@@ -200,6 +207,18 @@ document.addEventListener('DOMContentLoaded', function(){
       if (currentPage < totalPages) {
         currentPage++;
         renderCurrentPage();
+      }
+    });
+  }
+
+  if (pageNumberInput) {
+    pageNumberInput.addEventListener('change', function(){
+      const requestedPage = parseInt(pageNumberInput.value, 10);
+      if (!Number.isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= totalPages) {
+        currentPage = requestedPage;
+        renderCurrentPage();
+      } else {
+        pageNumberInput.value = currentPage;
       }
     });
   }
