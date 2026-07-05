@@ -74,7 +74,7 @@ class BookController extends Controller
         }
 
         if ($request->hasFile('file_pdf')) {
-            $data['file_pdf'] = $request->file('file_pdf')->store('books/pdfs', 'local');
+            $data['file_pdf'] = $request->file('file_pdf')->store('books/pdf', 'public');
         } else {
             unset($data['file_pdf']);
         }
@@ -124,7 +124,7 @@ class BookController extends Controller
         }
 
         if ($request->hasFile('file_pdf')) {
-            $data['file_pdf'] = $request->file('file_pdf')->store('books/pdfs', 'local');
+            $data['file_pdf'] = $request->file('file_pdf')->store('books/pdf', 'public');
         } else {
             unset($data['file_pdf']);
         }

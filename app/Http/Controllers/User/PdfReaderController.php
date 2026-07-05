@@ -10,9 +10,8 @@ class PdfReaderController extends Controller
 {
     public function show(Request $request, $id)
     {
-        $book = Book::with('category')
-            ->where('id', $id)
-            ->firstOrFail();
+        $book = Book::findOrFail($id);
+        $book->load('category');
 
         $relatedBooks = Book::with('category')
             ->where('category_id', $book->category_id)

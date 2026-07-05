@@ -52,7 +52,7 @@
             >
               <div class="small text-muted">{{ $book->category?->name }}</div>
               <div class="mt-2 d-grid">
-                <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-primary">Baca</a>
+                <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Baca</a>
               </div>
             </x-book-card>
           </div>
@@ -81,7 +81,7 @@
             >
               <div class="small text-muted">{{ $book->category?->name }}</div>
               <div class="mt-2 d-grid">
-                <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-outline-primary">Detail</a>
+                <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Detail</a>
               </div>
             </x-book-card>
           </div>

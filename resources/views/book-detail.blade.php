@@ -22,7 +22,7 @@
           </div>
           <div class="d-grid gap-2">
             <x-button variant="primary">Pinjam Buku</x-button>
-            <a href="{{ $book->stock > 0 ? route('reader', $book->id) : '#' }}" class="btn btn-outline-primary">Baca Sekarang</a>
+            <a href="{{ $book->stock > 0 ? route('reader', ['id' => $book->id]) : '#' }}" class="btn btn-outline-primary">Baca Sekarang</a>
           </div>
         </div>
       </div>

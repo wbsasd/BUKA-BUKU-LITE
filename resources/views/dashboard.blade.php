@@ -51,7 +51,7 @@
                           </div>
                         </div>
                         <div>
-                          <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-outline-primary">Lanjutkan</a>
+                          <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Lanjutkan</a>
                         </div>
                       </div>
                     </div>
@@ -79,7 +79,7 @@
                         rating="4"
                       >
                         <div class="mt-2 d-grid">
-                          <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-primary">Baca</a>
+                          <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Baca</a>
                         </div>
                       </x-book-card>
                     </div>
@@ -123,7 +123,7 @@
                           <div class="fw-semibold">{{ $book->title }}</div>
                           <div class="text-muted">{{ $book->author }}</div>
                         </div>
-                        <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-outline-primary">Lihat</a>
+                        <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Lihat</a>
                       </li>
                     @endforeach
                   @endif
