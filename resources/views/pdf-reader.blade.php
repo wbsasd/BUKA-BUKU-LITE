@@ -15,7 +15,7 @@
       <div class="card pdf-reader-wrapper">
         <div class="card-body">
           <div id="pdfViewer" class="pdf-viewer text-center mb-3">
-            <img id="pdfPageImage" src="https://picsum.photos/seed/page1/800/1000" alt="PDF Page">
+            <img id="pdfPageImage" src="" alt="PDF Page">
           </div>
 
           <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
@@ -50,8 +50,8 @@
       <div class="card mb-3">
         <div class="card-body">
           <h5>Informasi Buku</h5>
-          <p class="mb-1 fw-semibold">Judul Contoh</p>
-          <p class="small text-muted">Pengarang · Penerbit · 2024</p>
+          <p class="mb-1 fw-semibold">{{ $book->title }}</p>
+          <p class="small text-muted">{{ $book->author }} · {{ $book->publisher }} · {{ $book->publication_year }}</p>
           <div class="mb-2 text-warning">
             <i class="bi bi-star-fill"></i>
             <i class="bi bi-star-fill"></i>
@@ -70,18 +70,23 @@
       </div>
 
       <div class="card">
-        <div class="card-body">
+<div class="card-body">
           <h6>Buku Terkait</h6>
           <div class="row g-2">
-            @for($i=1;$i<=4;$i++)
+@foreach($relatedBooks as $rel)
               <div class="col-6">
-                <x-book-card title="Terkait {{$i}}" author="Penulis {{$i}}" cover="https://picsum.photos/seed/rel{{$i}}/200/260" rating="4">
+                <x-book-card
+                  title="{{ $rel->title }}"
+                  author="{{ $rel->author }}"
+                  cover="{{ $rel->cover_image ? asset('storage/covers/'.$rel->cover_image) : null }}"
+                  rating="4"
+                >
                   <div class="mt-2 d-grid">
                     <a href="#" class="btn btn-sm btn-outline-primary">Lihat</a>
                   </div>
                 </x-book-card>
               </div>
-            @endfor
+@endforeach
           </div>
         </div>
       </div>
@@ -92,15 +97,16 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  const totalPages = 12;
+  const totalPages = 1;
   let currentPage = 1;
-  let isPremium = false; // dummy: change to true to simulate premium
+  let isPremium = {{ auth()->user()?->role === 'premium' ? 'true' : 'false' }};
 
   const pageNumEl = document.getElementById('pageNum');
   const totalPagesEl = document.getElementById('totalPages');
   const pdfImg = document.getElementById('pdfPageImage');
   const progressBar = document.getElementById('progressBar');
   const sideProgress = document.getElementById('sideProgress');
+  const pdfImgAlt = document.getElementById('pdfPageImage');
   const overlay = document.getElementById('pdfOverlay');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
@@ -111,8 +117,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function updateViewer(){
     pageNumEl.textContent = currentPage;
-    // use picsum to simulate different pages
-    pdfImg.src = `https://picsum.photos/seed/page${currentPage}/800/1000`;
+    // Load real PDF (first page placeholder) - viewer still image-based in this UI
+    pdfImg.src = '{{ asset('storage/pdfs/'.$book->file_pdf) }}';
     const pct = Math.round((currentPage / totalPages) * 100);
     progressBar.style.width = pct + '%';
     sideProgress.style.width = pct + '%';

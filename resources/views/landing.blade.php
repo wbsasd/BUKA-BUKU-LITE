@@ -25,8 +25,8 @@
   <section class="py-3">
     <h5 class="mb-3">Kategori</h5>
     <div class="d-flex gap-2 flex-wrap">
-      @foreach(['Fiksi','Non-Fiksi','Sejarah','Teknologi','Anak','Sains'] as $cat)
-        <a href="#" class="btn btn-outline-primary btn-sm">{{ $cat }}</a>
+      @foreach($categories as $category)
+        <a href="#" class="btn btn-outline-primary btn-sm">{{ $category->name }}</a>
       @endforeach
     </div>
   </section>
@@ -39,15 +39,25 @@
     </div>
 
     <div class="row g-3">
-      @for($i=1;$i<=4;$i++)
-        <div class="col-6 col-md-3">
-          <x-book-card title="Judul Buku {{$i}}" author="Pengarang {{$i}}" cover="https://picsum.photos/seed/book{{$i}}/300/420" rating="4">
-            <div class="mt-2 d-grid">
-              <a href="#" class="btn btn-sm btn-primary">Baca</a>
-            </div>
-          </x-book-card>
-        </div>
-      @endfor
+      @if($books->isEmpty())
+        <div class="col-12 text-muted">Tidak ada buku.</div>
+      @else
+        @foreach($books->take(4) as $book)
+          <div class="col-6 col-md-3">
+            <x-book-card
+              title="{{ $book->title }}"
+              author="{{ $book->author }}"
+              cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+              rating="4"
+            >
+              <div class="small text-muted">{{ $book->category?->name }}</div>
+              <div class="mt-2 d-grid">
+                <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-primary">Baca</a>
+              </div>
+            </x-book-card>
+          </div>
+        @endforeach
+      @endif
     </div>
   </section>
 
@@ -58,15 +68,25 @@
       <a href="#" class="small">Lihat semua</a>
     </div>
     <div class="row g-3">
-      @for($i=5;$i<=8;$i++)
-        <div class="col-6 col-md-3">
-          <x-book-card title="Buku Populer {{$i}}" author="Penulis {{$i}}" cover="https://picsum.photos/seed/pop{{$i}}/300/420" rating="5">
-            <div class="mt-2 d-grid">
-              <a href="#" class="btn btn-sm btn-outline-primary">Detail</a>
-            </div>
-          </x-book-card>
-        </div>
-      @endfor
+      @if($books->skip(4)->isEmpty())
+        <div class="col-12 text-muted">Tidak ada buku.</div>
+      @else
+        @foreach($books->skip(4)->take(4) as $book)
+          <div class="col-6 col-md-3">
+            <x-book-card
+              title="{{ $book->title }}"
+              author="{{ $book->author }}"
+              cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+              rating="5"
+            >
+              <div class="small text-muted">{{ $book->category?->name }}</div>
+              <div class="mt-2 d-grid">
+                <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-outline-primary">Detail</a>
+              </div>
+            </x-book-card>
+          </div>
+        @endforeach
+      @endif
     </div>
   </section>
 

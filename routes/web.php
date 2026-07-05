@@ -2,21 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('landing');
-})->name('home');
+Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
 
-Route::middleware('auth')->get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+Route::middleware('auth')->get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
 
-Route::get('/book/{id}', function ($id) {
-    return view('book-detail');
-})->name('book.detail');
+Route::get('/book/{id}', [\App\Http\Controllers\User\BookDetailController::class, 'show'])->name('book.detail');
 
-Route::get('/reader/{id}', function ($id) {
-    return view('pdf-reader');
-})->name('reader');
+Route::get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
 
 // Admin authentication and dashboard
 Route::prefix('admin')->group(function () {
@@ -82,12 +74,12 @@ Auth::routes(['register' => false]);
 // Authorization for Login User
 // =============================
 // Tolak admin untuk akses halaman user /dashboard (juga akan menghalangi login admin via /login).
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        abort_if(auth()->user()?->role === 'admin', 403, 'Akun Administrator harus login melalui halaman Admin.');
-        return view('dashboard');
-    })->name('dashboard');
-});
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/dashboard', function () {
+//         abort_if(auth()->user()?->role === 'admin', 403, 'Akun Administrator harus login melalui halaman Admin.');
+//         return view('dashboard');
+//     })->name('dashboard');
+// });
 
 
 

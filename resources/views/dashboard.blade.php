@@ -30,25 +30,33 @@
             <div class="mb-4">
               <h6>Continue Reading</h6>
               <div class="row g-3">
-                @for($i=1;$i<=3;$i++)
-                  <div class="col-12 col-md-6">
-                    <div class="d-flex gap-3 align-items-center p-3 border rounded">
-                      <img src="https://picsum.photos/seed/cont{{$i}}/80/110" alt="cover" class="img-fluid" style="width:60px;height:80px;object-fit:cover">
-                      <div class="flex-grow-1">
-                        <div class="fw-semibold">Buku yang sedang dibaca {{$i}}</div>
-                        <div class="small text-muted">Penulis {{$i}} · Hal. 12/200</div>
-                        <div class="mt-2">
-                          <div class="progress" style="height:6px">
-                            <div class="progress-bar" role="progressbar" style="width: {{ 30*$i }}%;" aria-valuenow="{{ 30*$i }}" aria-valuemin="0" aria-valuemax="100"></div>
+                {{-- Continue Reading saat ini dibiarkan kosong bila belum ada histori (sesuai instruksi), tanpa mengubah layout --}}
+                @if($latestBooks->isNotEmpty())
+                  @foreach($latestBooks->take(3) as $book)
+                    <div class="col-12 col-md-6">
+                      <div class="d-flex gap-3 align-items-center p-3 border rounded">
+                        <img
+                          src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+                          alt="cover"
+                          class="img-fluid"
+                          style="width:60px;height:80px;object-fit:cover"
+                        >
+                        <div class="flex-grow-1">
+                          <div class="fw-semibold">{{ $book->title }}</div>
+                          <div class="small text-muted">{{ $book->author }} · Hal. 12/200</div>
+                          <div class="mt-2">
+                            <div class="progress" style="height:6px">
+                              <div class="progress-bar" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Lanjutkan</a>
+                        <div>
+                          <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-outline-primary">Lanjutkan</a>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                @endfor
+                  @endforeach
+                @endif
               </div>
             </div>
 
@@ -57,24 +65,34 @@
                 <h6 class="mb-0">Rekomendasi Buku</h6>
                 <a href="#" class="small">Lihat semua</a>
               </div>
-              <div class="row g-3">
-                @for($i=1;$i<=4;$i++)
-                  <div class="col-6 col-md-3">
-                    <x-book-card title="Rekomendasi {{$i}}" author="Pengarang {{$i}}" cover="https://picsum.photos/seed/rec{{$i}}/300/420" rating="4">
-                      <div class="mt-2 d-grid">
-                        <a href="#" class="btn btn-sm btn-primary">Baca</a>
-                      </div>
-                    </x-book-card>
-                  </div>
-                @endfor
-              </div>
+
+@if($recommendedBooks->isEmpty())
+                @include('user.empty-books-message')
+              @else
+                <div class="row g-3">
+                  @foreach($recommendedBooks->take(4) as $book)
+                    <div class="col-6 col-md-3">
+                      <x-book-card
+                        title="{{ $book->title }}"
+                        author="{{ $book->author }}"
+                        cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : null }}"
+                        rating="4"
+                      >
+                        <div class="mt-2 d-grid">
+                          <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-primary">Baca</a>
+                        </div>
+                      </x-book-card>
+                    </div>
+                  @endforeach
+                </div>
+              @endif
             </div>
 
             <div class="mb-4">
               <h6 class="mb-2">Kategori</h6>
               <div class="d-flex gap-2 flex-wrap">
-                @foreach(['Fiksi','Biografi','Teknologi','Self-Help','Anak'] as $cat)
-                  <a href="#" class="btn btn-outline-secondary btn-sm">{{ $cat }}</a>
+                @foreach($categories as $cat)
+                  <a href="#" class="btn btn-outline-secondary btn-sm">{{ $cat->name }}</a>
                 @endforeach
               </div>
             </div>
@@ -94,15 +112,21 @@
                 <h6 class="mb-1">Rekomendasi Untuk Anda</h6>
                 <p class="small text-muted mb-2">Berdasarkan bacaan terakhir Anda</p>
                 <ul class="list-unstyled small">
-                  @for($i=1;$i<=3;$i++)
-                    <li class="py-2 d-flex justify-content-between align-items-center border-bottom">
-                      <div>
-                        <div class="fw-semibold">Buku Rekomendasi {{$i}}</div>
-                        <div class="text-muted">Penulis {{$i}}</div>
-                      </div>
-                      <a href="#" class="btn btn-sm btn-outline-primary">Lihat</a>
+@if($recommendedBooks->isEmpty())
+                    <li class="py-2 text-muted">
+                      @include('user.empty-books-message')
                     </li>
-                  @endfor
+                  @else
+                    @foreach($recommendedBooks->take(3) as $book)
+                      <li class="py-2 d-flex justify-content-between align-items-center border-bottom">
+                        <div>
+                          <div class="fw-semibold">{{ $book->title }}</div>
+                          <div class="text-muted">{{ $book->author }}</div>
+                        </div>
+                        <a href="{{ route('book.detail', $book->id) }}" class="btn btn-sm btn-outline-primary">Lihat</a>
+                      </li>
+                    @endforeach
+                  @endif
                 </ul>
               </div>
             </div>
@@ -113,4 +137,6 @@
   </div>
 </div>
 @endsection
+
+
 

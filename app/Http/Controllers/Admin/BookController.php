@@ -65,9 +65,10 @@ class BookController extends Controller
         }
         unset($data['category_name']);
 
-        // Handle uploads (private storage)
+        // Handle uploads (storage for public/asset)
+        // Store relative path under public disk, e.g. books/covers/cover.jpg
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('books/covers', 'local');
+            $data['cover_image'] = $request->file('cover_image')->store('books/covers', 'public');
         } else {
             unset($data['cover_image']);
         }
@@ -115,9 +116,9 @@ class BookController extends Controller
         }
         unset($data['category_name']);
 
-        // Handle uploads (private storage). Keep existing file if not re-uploaded.
+        // Handle uploads (public storage for cover, private storage for PDFs).
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('books/covers', 'local');
+            $data['cover_image'] = $request->file('cover_image')->store('books/covers', 'public');
         } else {
             unset($data['cover_image']);
         }

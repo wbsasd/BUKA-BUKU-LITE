@@ -1,20 +1,18 @@
-# TODO - Migration Fix
+# TODO
 
-## Completed
-- (pending) 
+## Phase: Connect Books data to User Dashboard (no UI changes)
 
-## To do
-1. Audit semua migration di `database/migrations` untuk tabel: `categories`, `books`, `borrowings`, serta `users` role.
-2. Jadikan hanya 1 migration final per tabel:
-   - `categories`: pilih `2026_07_02_174818_create_categories_table.php`.
-   - `books`: pilih `2026_07_02_174818_create_books_table.php` (perbaiki agar kolom match blueprint).
-   - `borrowings`: pilih `2026_07_02_174818_create_borrowings_table.php` (tambahkan FK bila diperlukan).
-3. Nonaktifkan (no-op) migration duplikat:
-   - `2026_07_02_174914_create_categories_table.php`
-   - `2026_07_02_174930_create_books_table.php`
-   - `2026_07_02_174946_create_borrowings_table.php`
-4. Pastikan urutan FK: users -> categories -> books -> borrowings.
-5. Pastikan foreign key mengacu ke tabel yang sudah ada dan tipe kolom match.
-6. Jalankan `php artisan migrate:fresh` dan verifikasi tidak ada error.
-7. Jalankan seeders bila diperlukan.
+- [ ] Step 1: Audit user dashboard views (dashboard.blade.php, home.blade.php, book-detail.blade.php, pdf-reader.blade.php) and identify dummy/hardcode data.
+- [ ] Step 2: Create/Update controller for user dashboard to fetch:
+  - [ ] latestBooks (latest order)
+  - [ ] recommendedBooks (stock > 0)
+  - [ ] categories (all)
+- [ ] Step 3: Update user dashboard blade to use passed variables (covers from storage/covers, show placeholder if empty).
+- [ ] Step 4: Update card links to open detail page, not PDF dummy.
+- [ ] Step 5: Update book-detail blade to show book attributes from DB.
+- [ ] Step 6: Update pdf-reader blade to load real PDF from storage/pdfs.
+- [ ] Step 7: Discover page (if exists) to be DB-driven with search/filter/sort.
+- [ ] Step 8: Homepage sections: Recomendasi minimal 8 terbaru.
+- [ ] Step 9: Ensure php artisan storage:link is documented/run if needed.
+- [ ] Output: list changed files, routes, controllers, models, and Eloquent queries used.
 
