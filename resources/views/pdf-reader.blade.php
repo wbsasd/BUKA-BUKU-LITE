@@ -14,9 +14,11 @@
     <main class="col-12 col-md-7">
       <div class="card pdf-reader-wrapper">
         <div class="card-body">
-          <div id="pdfViewer" class="pdf-viewer text-center mb-3">
-            @if(!empty($book->file_pdf) && Storage::disk('public')->exists($book->file_pdf))
+  <div id="pdfViewer" class="pdf-viewer text-center mb-3">
+            @if(!empty($book->file_pdf) && Storage::disk('local')->exists('private/books/' . ltrim($book->file_pdf, '/')))
               <div class="border rounded p-2 bg-light">
+
+
                 <div class="d-flex align-items-center justify-content-between mb-2 gap-2 flex-wrap">
                   <div class="d-flex gap-2">
                     <button id="prevBtn" class="btn btn-outline-secondary btn-sm" type="button">&laquo; Prev</button>
@@ -128,7 +130,30 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  const pdfUrl = @json(!empty($book->file_pdf) ? asset('storage/' . $book->file_pdf) : null);
+  // Hardening: blokir shortcut & aksi yang memudahkan pengambilan PDF
+  document.addEventListener('keydown', function(e){
+    const key = e.key ? e.key.toLowerCase() : '';
+    const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+
+    if (isCtrlOrMeta && (key === 's' || key === 'p')) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);
+
+  // Blok klik kanan di area reader
+  const readerRoot = document.getElementById('pdfViewer');
+  if (readerRoot) {
+    readerRoot.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      return false;
+    });
+  }
+
+  const pdfUrl = @json(!empty($book->file_pdf) ? url('/reader/' . $book->id . '/pdf') : null);
+
+
   const overlay = document.getElementById('pdfOverlay');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
@@ -156,6 +181,12 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+  // Matikan akses yang biasanya ada di PDF viewer/toolbar (hardening tambahan)
+  // (meskipun kita render manual ke canvas, ini mencegah beberapa aksi default)
+  pdfjsLib.disableTextLayer = true;
+  pdfjsLib.disableRange = true;
+
 
   function updateControls(){
     if (prevBtn) prevBtn.disabled = currentPage <= 1;

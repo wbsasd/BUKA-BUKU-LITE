@@ -10,6 +10,10 @@ Route::get('/book/{id}', [\App\Http\Controllers\User\BookDetailController::class
 
 Route::get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
 
+Route::get('/reader/{book}/pdf', [\App\Http\Controllers\User\PdfReaderController::class, 'pdf'])
+    ->middleware('auth')
+    ->name('reader.pdf');
+
 // Admin authentication and dashboard
 Route::prefix('admin')->group(function () {
     // Admin login pages (no auth/role middleware)
