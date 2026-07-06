@@ -3,14 +3,6 @@
 @section('content')
 <div class="container-fluid py-4">
   <div class="row">
-    <aside class="col-12 col-md-2 d-none d-md-block">
-      <x-sidebar>
-        <a class="nav-link" href="#">Daftar Buku</a>
-        <a class="nav-link" href="#">Favorit</a>
-        <a class="nav-link" href="#">Riwayat</a>
-      </x-sidebar>
-    </aside>
-
     <main class="col-12 col-md-7">
       <div class="card pdf-reader-wrapper">
         <div class="card-body">

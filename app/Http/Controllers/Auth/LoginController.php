@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -12,9 +14,20 @@ class LoginController extends Controller
 
     protected function attemptLogin(Request $request)
     {
+        Log::info('Login Request', [
+            'email' => $request->email,
+        ]);
+
         $credentials = $request->only($this->username(), 'password');
 
-        if ($this->guard()->attempt($credentials, $request->boolean('remember'))) {
+        $result = $this->guard()->attempt($credentials, $request->boolean('remember'));
+
+        Log::info('Login Result', [
+            'success' => $result,
+            'user' => Auth::id(),
+        ]);
+
+        if ($result) {
             $user = $this->guard()->user();
 
             // Membership check only for normal users (role bukan admin)
@@ -31,8 +44,11 @@ class LoginController extends Controller
             return true;
         }
 
+        Log::warning('Login Failed');
+
         return false;
     }
+
 
     /*
     |--------------------------------------------------------------------------
