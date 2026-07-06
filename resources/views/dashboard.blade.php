@@ -73,13 +73,14 @@
                   @foreach($recommendedBooks->take(4) as $book)
                     <div class="col-6 col-md-3">
                       <x-book-card
+                        :bookId="$book->id"
                         title="{{ $book->title }}"
                         author="{{ $book->author }}"
                         cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : null }}"
                         rating="4"
                       >
                         <div class="mt-2 d-grid">
-                          <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Baca</a>
+                          <a href="{{ route('book.detail', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Pinjam</a>
                         </div>
                       </x-book-card>
                     </div>

@@ -44,7 +44,7 @@
                     <a class="nav-link" href="{{ route('admin.books.index') }}">Books</a>
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Categories</a>
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Borrowings</a>
-                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Membership</a>
+                    <a class="nav-link" href="{{ route('admin.membership-requests.index') }}">Permintaan Registrasi</a>
 
 
                     <a class="nav-link" href="{{ route('admin.reports.index') }}">Reports</a>

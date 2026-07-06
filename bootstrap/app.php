@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'membership.active' => \App\Http\Middleware\EnsureActiveMembership::class,
+            'membership.active.login' => \App\Http\Middleware\EnsureActiveMembershipDuringLogin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

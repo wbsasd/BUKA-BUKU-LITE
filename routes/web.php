@@ -4,13 +4,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
 
-Route::middleware('auth')->get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'membership.active'])->get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
 
+// Pinjam buku (mulai baca/reader). Guest dialihkan ke Register oleh middleware.
+Route::middleware(['auth', 'membership.active'])->get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
+
+// Detail buku
 Route::get('/book/{id}', [\App\Http\Controllers\User\BookDetailController::class, 'show'])->name('book.detail');
 
-Route::get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
+// Back-compat: reader juga diproteksi membership (guest diarahkan register).
+Route::middleware(['auth', 'membership.active'])->get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
 
 // Admin authentication and dashboard
+
+Route::get('/membership/register', [\App\Http\Controllers\MembershipRegistrationController::class, 'create'])
+    ->name('membership.register');
+
 Route::prefix('admin')->group(function () {
     // Admin login pages (no auth/role middleware)
     Route::get('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('admin.login');
@@ -29,6 +38,15 @@ Route::prefix('admin')->group(function () {
 
     // Protected admin routes (must be auth + role:admin)
     Route::middleware(['auth', 'role:admin'])->group(function () {
+        // Membership registration requests
+        Route::get('membership-requests', [\App\Http\Controllers\Admin\MembershipApprovalController::class, 'index'])
+            ->name('admin.membership-requests.index');
+        Route::post('membership-requests/{user}/approve', [\App\Http\Controllers\Admin\MembershipApprovalController::class, 'approve'])
+            ->name('admin.membership-requests.approve');
+        Route::post('membership-requests/{user}/reject', [\App\Http\Controllers\Admin\MembershipApprovalController::class, 'reject'])
+            ->name('admin.membership-requests.reject');
+
+        // Dashboard
         // Dashboard
         Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
 

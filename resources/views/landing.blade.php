@@ -45,6 +45,7 @@
         @foreach($books->take(4) as $book)
           <div class="col-6 col-md-3">
             <x-book-card
+              :bookId="$book->id"
               title="{{ $book->title }}"
               author="{{ $book->author }}"
               cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
@@ -52,7 +53,7 @@
             >
               <div class="small text-muted">{{ $book->category?->name }}</div>
               <div class="mt-2 d-grid">
-                <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Baca</a>
+                <a href="{{ route('book.detail', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Pinjam</a>
               </div>
             </x-book-card>
           </div>
@@ -74,6 +75,7 @@
         @foreach($books->skip(4)->take(4) as $book)
           <div class="col-6 col-md-3">
             <x-book-card
+              :bookId="$book->id"
               title="{{ $book->title }}"
               author="{{ $book->author }}"
               cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
@@ -81,7 +83,7 @@
             >
               <div class="small text-muted">{{ $book->category?->name }}</div>
               <div class="mt-2 d-grid">
-                <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Detail</a>
+                <a href="{{ route('book.detail', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Pinjam</a>
               </div>
             </x-book-card>
           </div>
