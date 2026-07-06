@@ -1,14 +1,11 @@
-# TODO - Membership Status (pending/active/rejected)
-
-- [x] Pastikan `users.membership_status` ada (migration sudah ada)
-- [x] Register user baru otomatis `membership_status=pending`
-- [x] Admin menu “Permintaan Registrasi” menampilkan user pending
-- [x] Admin approve → `active`, reject → `rejected`
-- [x] User non-active ditolak login dengan pesan yang benar
-- [x] User non-active tidak boleh mengakses peminjaman/reader (pakai middleware `membership.active`)
-- [x] Guest klik “Pinjam Buku” diarahkan ke halaman Register via middleware
-- [ ] Jalankan test manual:
-  - Register → Login (harus redirect/ditolak + pesan)
-  - Guest akses `/reader/{id}` → harus ke register
-  - Admin approve user → user bisa akses `/reader/{id}`
+- [x] Audit login controllers user/admin + middleware membership
+- [x] Identifikasi penyebab: membership middleware tidak mengecualikan admin
+- [x] Edit `app/Http/Middleware/EnsureActiveMembership.php`: skip membership check untuk role `admin` + tambah Log::info sebelum redirect
+- [x] Edit `app/Http/Middleware/EnsureActiveMembershipDuringLogin.php`: skip membership check untuk role `admin` + tambah Log::info sebelum logout/redirect
+- [ ] Clear caches (opsional, tergantung environment) 
+- [ ] Tes manual:
+  - Admin login via /admin/login
+  - User login via /login
+  - User membership pending harus tetap gagal masuk dashboard/reader
+- [ ] Cek log: `storage/logs/laravel.log` untuk entri [MEMBERSHIP BLOCK] dan [MEMBERSHIP BLOCK LOGIN]
 
