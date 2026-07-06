@@ -73,22 +73,110 @@
             </x-slot>
         </x-navbar>
 
-        <div class="container-fluid">
-            <div class="row">
-                <aside class="col-lg-2 d-none d-lg-block bg-light p-3">
-                    <x-sidebar>
-                        <a class="nav-link" href="{{ route('home') }}">Beranda</a>
-                        <a class="nav-link" href="#">Discover</a>
-                        <a class="nav-link" href="#">Wishlist</a>
-                        <a class="nav-link" href="#">Pengaturan</a>
-                    </x-sidebar>
-                </aside>
+        {{-- USER SIDEBAR (Hamburger) --}}
+        <button
+            id="hamburgerBtn"
+            type="button"
+            aria-label="Open sidebar"
+            class="btn btn-light shadow-sm"
+            style="position:fixed;top:0;left:0;z-index:1100; margin:16px;width:44px;height:44px; border-radius:12px;"
+        >
+            <span class="fs-4" aria-hidden="true">☰</span>
+        </button>
 
-                <main class="col-lg-9 col-12 py-4">
+        <div
+            id="sidebarBackdrop"
+            class="position-fixed top-0 start-0 w-100 h-100 d-none"
+            style="background:rgba(0,0,0,0.35);z-index:1040;"
+        ></div>
+
+        <style>
+            /* Sidebar slider from left */
+            #userSidebar {
+                position: fixed;
+                left: -260px;
+                width: 260px;
+                height: 100%;
+                transition: .3s ease;
+                z-index: 1050;
+                top: 0;
+            }
+            #userSidebar.open {
+                left: 0;
+            }
+        </style>
+
+        {{-- Keep sidebar HTML structure (do not move existing layout/grid) --}}
+        <aside id="userSidebar" class="vh-100 bg-white border-end p-3 shadow-lg rounded-xl">
+            <div class="mb-4">
+                <h5 class="mb-0">Menu</h5>
+            </div>
+            <nav class="nav nav-pills flex-column">
+                <a class="nav-link" href="{{ route('home') }}">Beranda</a>
+                <a class="nav-link" href="#">Discover</a>
+                <a class="nav-link" href="#">Wishlist</a>
+                <a class="nav-link" href="#">Order</a>
+                <a class="nav-link" href="#">Pengaturan</a>
+
+                <hr class="my-3">
+
+                <a
+                    class="nav-link"
+                    href="{{ route('logout') }}"
+                    onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();"
+                >
+                    Logout
+                </a>
+
+                <form id="sidebar-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
+            </nav>
+        </aside>
+
+        {{-- content --}}
+        <div class="d-flex justify-content-center">
+            <div class="container-fluid" style="max-width:1300px;width:100%;padding:24px;">
+        <main style="width:100%;">
                     @yield('content')
                 </main>
             </div>
         </div>
+
+
+        {{-- sidebar toggle logic --}}
+        <script>
+            (function () {
+                const btn = document.getElementById('hamburgerBtn');
+                const sidebar = document.getElementById('userSidebar');
+                const backdrop = document.getElementById('sidebarBackdrop');
+
+                if (!btn || !sidebar || !backdrop) return;
+
+                function openSidebar() {
+                    sidebar.classList.add('open');
+                    backdrop.classList.remove('d-none');
+                }
+
+                function closeSidebar() {
+                    sidebar.classList.remove('open');
+                    backdrop.classList.add('d-none');
+                }
+
+                btn.addEventListener('click', function () {
+                    if (sidebar.classList.contains('open')) closeSidebar();
+                    else openSidebar();
+                });
+
+                backdrop.addEventListener('click', function () {
+                    closeSidebar();
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closeSidebar();
+                });
+            })();
+        </script>
 
         <x-footer />
     </div>
