@@ -17,8 +17,12 @@ Route::middleware(['auth', 'membership.active'])->get('/reader/{id}', [\App\Http
 
 // Admin authentication and dashboard
 
+// Membership registration
 Route::get('/membership/register', [\App\Http\Controllers\MembershipRegistrationController::class, 'create'])
     ->name('membership.register');
+
+Route::post('/membership/register', [\App\Http\Controllers\MembershipRegistrationController::class, 'store'])
+    ->name('membership.store');
 
 Route::prefix('admin')->group(function () {
     // Admin login pages (no auth/role middleware)

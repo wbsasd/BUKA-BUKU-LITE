@@ -14,8 +14,9 @@
                         <span class="badge bg-primary-soft text-primary">Form Membership</span>
                     </div>
 
-                    <form method="POST" action="#" enctype="multipart/form-data" novalidate>
+                    <form method="POST" action="{{ route('membership.store') }}" enctype="multipart/form-data" novalidate>
                         @csrf
+
 
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
@@ -55,13 +56,15 @@
 
                             <div class="col-12 col-md-6">
                                 <label class="form-label">Upload KTP (dummy)</label>
-                                <input type="file" class="form-control" name="ktp" accept="image/*,.pdf" disabled>
+                                <input type="file" class="form-control" name="ktp" accept="image/*,.pdf">
+
                                 <div class="form-text">(Placeholder upload KTP - belum diimplementasikan)</div>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label class="form-label">Upload Foto Diri (dummy)</label>
-                                <input type="file" class="form-control" name="selfie" accept="image/*,.pdf" disabled>
+                                <input type="file" class="form-control" name="selfie" accept="image/*,.pdf">
+
                                 <div class="form-text">(Placeholder upload foto - belum diimplementasikan)</div>
                             </div>
                         </div>
