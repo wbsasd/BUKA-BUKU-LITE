@@ -92,6 +92,18 @@ Route::prefix('admin')->group(function () {
 
 Auth::routes(['register' => false]);
 
+// Borrowing user flow
+Route::middleware(['auth', 'membership.active'])->group(function () {
+    Route::get('/book/{book}/booking', [\App\Http\Controllers\BorrowController::class, 'booking'])->name('borrow.booking');
+    Route::post('/book/{book}/booking', [\App\Http\Controllers\BorrowController::class, 'storeBooking'])->name('borrow.store');
+
+    Route::get('/borrow/{borrowing}/payment', [\App\Http\Controllers\BorrowController::class, 'payment'])->name('borrow.payment');
+    Route::post('/borrow/{borrowing}/pay', [\App\Http\Controllers\BorrowController::class, 'pay'])->name('borrow.pay');
+    Route::get('/borrow/{borrowing}/finish', [\App\Http\Controllers\BorrowController::class, 'finish'])->name('borrow.finish');
+
+    Route::get('/borrowings/history', [\App\Http\Controllers\BorrowController::class, 'history'])->name('borrow.history');
+});
+
 // =============================
 // Authorization for Login User
 // =============================

@@ -75,7 +75,7 @@
                                     </div>
 
                                     <div class="d-flex flex-wrap gap-2">
-@guest
+                                        @guest
                                             <a href="{{ route('membership.register') }}" class="btn btn-primary">Pinjam Buku</a>
                                         @else
                                             @php
@@ -83,11 +83,11 @@
                                             @endphp
 
                                             @if($membershipStatus === 'pending')
-                                                <a href="#" class="btn btn-primary" onclick="alert('Permintaan membership Anda masih menunggu persetujuan Admin.'); return false;">Pinjam Buku</a>
+                                                <a href="#" class="btn btn-primary" onclick="alert('Menunggu persetujuan admin.'); return false;">Pinjam Buku</a>
                                             @elseif($membershipStatus === 'rejected')
                                                 <a href="#" class="btn btn-primary" onclick="alert('Permintaan membership Anda ditolak.'); return false;">Pinjam Buku</a>
                                             @else
-                                                <a href="{{ $book->stock > 0 ? route('reader', ['id' => $book->id]) : '#' }}" class="btn btn-primary">Pinjam Buku</a>
+                                                <a href="{{ $book->stock > 0 ? route('borrow.booking', $book) : '#' }}" class="btn btn-primary">Pinjam Buku</a>
                                             @endif
                                         @endguest
 
