@@ -13,9 +13,11 @@ class MembershipApprovalController extends Controller
     public function index(): View
     {
         $pendingUsers = User::query()
+            ->where('role', 'pengguna')
             ->where('membership_status', 'pending')
-            ->orderByDesc('created_at')
+            ->latest()
             ->get();
+
 
         return view('admin.memberships.requests', [
             'pendingUsers' => $pendingUsers,
