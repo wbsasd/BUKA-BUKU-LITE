@@ -89,6 +89,42 @@
       </div>
     </div>
   @else
+    <!-- Warnings for Overdue Books -->
+    @php
+      $warningBorrowings = $borrowings->filter(fn($b) => $b->warning_sent);
+      $totalFine = $warningBorrowings->sum(fn($b) => $b->fine);
+    @endphp
+
+    @if($warningBorrowings->count() > 0)
+      <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>⚠</strong> Buku Anda sudah melewati batas waktu peminjaman. Segera kembalikan buku.
+        <br>
+        <small class="mt-2 d-block">Total denda saat ini: <strong class="text-danger">Rp{{ number_format($totalFine, 0, ',', '.') }}</strong></small>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <div class="d-flex gap-2 mb-4">
+        @php
+          $firstWarn = $warningBorrowings->first();
+        @endphp
+        <button class="btn btn-danger flex-grow-1"
+                data-bs-toggle="modal"
+                data-bs-target="#returnModal"
+                data-borrowing-id="{{ $firstWarn->id }}"
+                data-book-title="{{ $firstWarn->book?->title }}">
+          <i class="fas fa-redo me-2"></i>Kembalikan Buku
+        </button>
+        <button class="btn btn-warning flex-grow-1"
+                data-bs-toggle="modal"
+                data-bs-target="#extendModal"
+                data-borrowing-id="{{ $firstWarn->id }}"
+                data-book-title="{{ $firstWarn->book?->title }}">
+          <i class="fas fa-plus me-2"></i>Pinjam Lebih Lama
+        </button>
+      </div>
+    @endif
+
     <!-- Desktop View (Table) -->
     <div class="card border-0 shadow-sm rounded-3 d-none d-md-block">
       <div class="card-body">
@@ -108,6 +144,9 @@
             </thead>
             <tbody>
               @forelse($borrowings as $b)
+                @php
+                  $isOverdue = $b->status === 'paid' && now() > $b->due_date;
+                @endphp
                 <tr class="border-bottom">
                   <!-- Book -->
                   <td>
@@ -139,12 +178,12 @@
                   </td>
                   <!-- Status -->
                   <td>
-                    @if ($b->status === 'paid')
-                      <span class="badge bg-warning bg-opacity-10 text-warning">Dipinjam</span>
-                    @elseif ($b->status === 'returned')
+                    @if ($b->status === 'returned')
                       <span class="badge bg-success bg-opacity-10 text-success">Sudah Dikembalikan</span>
+                    @elseif ($isOverdue)
+                      <span class="badge bg-danger bg-opacity-10 text-danger">Jatuh Tempo</span>
                     @else
-                      <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ ucfirst($b->status) }}</span>
+                      <span class="badge bg-warning bg-opacity-10 text-warning">Dipinjam</span>
                     @endif
                   </td>
                   <!-- Fine -->
@@ -158,13 +197,24 @@
                   <!-- Action -->
                   <td class="text-center">
                     @if ($b->status === 'paid')
-                      <button class="btn btn-sm btn-outline-primary" 
-                              data-bs-toggle="modal" 
-                              data-bs-target="#returnModal"
-                              data-borrowing-id="{{ $b->id }}"
-                              data-book-title="{{ $b->book?->title }}">
-                        Kembalikan
-                      </button>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#returnModal"
+                                data-borrowing-id="{{ $b->id }}"
+                                data-book-title="{{ $b->book?->title }}"
+                                title="Kembalikan buku">
+                          <i class="fas fa-redo me-1"></i>Kembalikan
+                        </button>
+                        <button class="btn btn-outline-warning" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#extendModal"
+                                data-borrowing-id="{{ $b->id }}"
+                                data-book-title="{{ $b->book?->title }}"
+                                title="Perpanjang masa pinjam">
+                          <i class="fas fa-plus me-1"></i>Perpanjang
+                        </button>
+                      </div>
                     @else
                       <span class="badge bg-success bg-opacity-10 text-success">Sudah Dikembalikan</span>
                     @endif
@@ -181,6 +231,9 @@
     <!-- Mobile View (Card List) -->
     <div class="d-md-none">
       @forelse($borrowings as $b)
+        @php
+          $isOverdue = $b->status === 'paid' && now() > $b->due_date;
+        @endphp
         <div class="card border-0 shadow-sm rounded-3 mb-3">
           <div class="card-body">
             <!-- Book Header -->
@@ -192,10 +245,12 @@
               <div class="flex-grow-1">
                 <h6 class="fw-bold mb-1">{{ $b->book?->title }}</h6>
                 <div class="d-flex gap-2 flex-wrap">
-                  @if ($b->status === 'paid')
-                    <span class="badge bg-warning bg-opacity-10 text-warning small">Dipinjam</span>
-                  @else
+                  @if ($b->status === 'returned')
                     <span class="badge bg-success bg-opacity-10 text-success small">Sudah Dikembalikan</span>
+                  @elseif ($isOverdue)
+                    <span class="badge bg-danger bg-opacity-10 text-danger small">Jatuh Tempo</span>
+                  @else
+                    <span class="badge bg-warning bg-opacity-10 text-warning small">Dipinjam</span>
                   @endif
                   @if ($b->fine > 0)
                     <span class="badge bg-danger bg-opacity-10 text-danger small">Denda: Rp{{ number_format($b->fine, 0, ',', '.') }}</span>
@@ -226,13 +281,22 @@
 
             <!-- Action -->
             @if ($b->status === 'paid')
-              <button class="btn btn-primary btn-sm w-100" 
-                      data-bs-toggle="modal" 
-                      data-bs-target="#returnModal"
-                      data-borrowing-id="{{ $b->id }}"
-                      data-book-title="{{ $b->book?->title }}">
-                <i class="fas fa-redo me-2"></i>Kembalikan Buku
-              </button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-danger btn-sm flex-grow-1" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#returnModal"
+                        data-borrowing-id="{{ $b->id }}"
+                        data-book-title="{{ $b->book?->title }}">
+                  <i class="fas fa-redo me-1"></i>Kembalikan
+                </button>
+                <button class="btn btn-warning btn-sm flex-grow-1" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#extendModal"
+                        data-borrowing-id="{{ $b->id }}"
+                        data-book-title="{{ $b->book?->title }}">
+                  <i class="fas fa-plus me-1"></i>Perpanjang
+                </button>
+              </div>
             @else
               <div class="alert alert-success alert-sm mb-0">
                 <i class="fas fa-check-circle me-2"></i>Sudah Dikembalikan
@@ -270,9 +334,64 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
           Nanti Dulu Deh
         </button>
-        <button type="button" class="btn btn-primary" id="confirmReturnBtn">
-          Kembalikan Buku
+        <button type="button" class="btn btn-danger" id="confirmReturnBtn">
+          <i class="fas fa-redo me-1"></i>Kembalikan Buku
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Extend Duration Modal -->
+<div class="modal fade" id="extendModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3">
+      <div class="modal-header bg-warning bg-opacity-10 border-warning border-opacity-25">
+        <h5 class="modal-title fw-bold text-warning">
+          <i class="fas fa-plus-circle me-2"></i>Perpanjang Masa Pinjam
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-3">Pilih durasi perpanjangan untuk buku berikut:</p>
+        <p class="small mb-3 p-2 bg-light rounded">
+          <strong id="extendBookTitle"></strong>
+        </p>
+
+        <form id="extendForm" method="POST" style="display: none;">
+          @csrf
+          <input type="hidden" name="extend_duration">
+        </form>
+
+        <div class="row g-2">
+          <div class="col-6 col-sm-6">
+            <button class="btn btn-outline-warning w-100 text-start extend-option" data-duration="3" data-price="10000">
+              <div class="fw-bold">+ 3 Hari</div>
+              <small class="text-muted">Rp10.000</small>
+            </button>
+          </div>
+          <div class="col-6 col-sm-6">
+            <button class="btn btn-outline-warning w-100 text-start extend-option" data-duration="7" data-price="20000">
+              <div class="fw-bold">+ 7 Hari</div>
+              <small class="text-muted">Rp20.000</small>
+            </button>
+          </div>
+          <div class="col-6 col-sm-6">
+            <button class="btn btn-outline-warning w-100 text-start extend-option" data-duration="14" data-price="35000">
+              <div class="fw-bold">+ 14 Hari</div>
+              <small class="text-muted">Rp35.000</small>
+            </button>
+          </div>
+          <div class="col-6 col-sm-6">
+            <button class="btn btn-outline-warning w-100 text-start extend-option" data-duration="30" data-price="60000">
+              <div class="fw-bold">+ 30 Hari</div>
+              <small class="text-muted">Rp60.000</small>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
       </div>
     </div>
   </div>
@@ -281,26 +400,48 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Return Modal Handler
   const returnModal = document.getElementById('returnModal');
-  
   returnModal.addEventListener('show.bs.modal', function(event) {
     const button = event.relatedTarget;
     const borrowingId = button.getAttribute('data-borrowing-id');
     const bookTitle = button.getAttribute('data-book-title');
     
-    // Update modal
     document.getElementById('bookTitleDisplay').textContent = `"${bookTitle}"`;
-    
-    // Set form action
     const form = document.getElementById('returnForm');
     form.setAttribute('action', `/borrow/${borrowingId}/return`);
   });
 
-  // Confirm return button
   document.getElementById('confirmReturnBtn').addEventListener('click', function() {
-    const form = document.getElementById('returnForm');
-    form.style.display = 'block';
-    form.submit();
+    document.getElementById('returnForm').submit();
+  });
+
+  // Extend Modal Handler
+  const extendModal = document.getElementById('extendModal');
+  extendModal.addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;
+    const borrowingId = button.getAttribute('data-borrowing-id');
+    const bookTitle = button.getAttribute('data-book-title');
+    
+    document.getElementById('extendBookTitle').textContent = bookTitle;
+    
+    // Store borrowing ID in modal for use by extend options
+    extendModal.dataset.borrowingId = borrowingId;
+  });
+
+  // Extend Duration Option Buttons
+  document.querySelectorAll('.extend-option').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const duration = this.getAttribute('data-duration');
+      const borrowingId = extendModal.dataset.borrowingId;
+      
+      // Create form and submit
+      const form = document.getElementById('extendForm');
+      form.querySelector('input[name="extend_duration"]').value = duration;
+      form.setAttribute('action', `/borrow/${borrowingId}/extend`);
+      form.submit();
+    });
   });
 });
 </script>

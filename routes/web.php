@@ -62,6 +62,7 @@ Route::prefix('admin')->group(function () {
 
         // Borrowings
         Route::resource('borrowings', \App\Http\Controllers\Admin\BorrowingController::class, ['as' => 'admin']);
+        Route::post('borrowings/{borrowing}/warning', [\App\Http\Controllers\Admin\BorrowingController::class, 'sendWarning'])->name('admin.borrowings.warning');
 
         // Membership
         Route::resource('memberships', \App\Http\Controllers\Admin\MembershipController::class, ['as' => 'admin']);
@@ -101,6 +102,7 @@ Route::middleware(['auth', 'membership.active'])->group(function () {
     Route::post('/borrow/{borrowing}/pay', [\App\Http\Controllers\BorrowController::class, 'pay'])->name('borrow.pay');
     Route::get('/borrow/{borrowing}/finish', [\App\Http\Controllers\BorrowController::class, 'finish'])->name('borrow.finish');
     Route::post('/borrow/{borrowing}/return', [\App\Http\Controllers\BorrowController::class, 'returnBook'])->name('borrow.return');
+    Route::post('/borrow/{borrowing}/extend', [\App\Http\Controllers\BorrowController::class, 'extendBook'])->name('borrow.extend');
 
     Route::get('/borrowings/history', [\App\Http\Controllers\BorrowController::class, 'history'])->name('borrow.history');
 });

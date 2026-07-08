@@ -56,6 +56,39 @@ class BorrowController extends Controller
             'payment_method' => ['required', 'string'],
         ]);
 
+        // Check if this is an extension payment
+        $extendingBorrowingId = session('extending_borrowing_id');
+
+        if ($extendingBorrowingId) {
+            // This is an extension payment
+            $originalBorrowing = Borrowing::findOrFail($extendingBorrowingId);
+
+            // Update the extension record
+            $borrowing->payment_method = $data['payment_method'];
+            $borrowing->status = 'paid';
+            $borrowing->borrowed_at = now();
+            $borrowing->due_date = now()->addDays($borrowing->duration);
+            $borrowing->borrow_date = $borrowing->borrowed_at;
+            $borrowing->return_date = $borrowing->due_date;
+            $borrowing->save();
+
+            // Update the original borrowing
+            $originalBorrowing->due_date = $borrowing->due_date;
+            $originalBorrowing->duration = $originalBorrowing->duration + $borrowing->duration;
+            $originalBorrowing->warning_sent = false;
+            $originalBorrowing->warning_sent_at = null;
+            $originalBorrowing->save();
+
+            // Clear session
+            session()->forget('extending_borrowing_id');
+
+            // Delete the extension record (we'll just keep it for record, actually let's keep it)
+            // Or we can use it for tracking purposes
+
+            return redirect()->route('borrow.finish', $borrowing);
+        }
+
+        // Normal payment (new borrowing)
         $borrowing->payment_method = $data['payment_method'];
         $borrowing->status = 'paid';
         $borrowing->borrowed_at = now();
@@ -106,4 +139,46 @@ class BorrowController extends Controller
         return redirect()->route('borrow.history')
             ->with('success', 'Buku berhasil dikembalikan');
     }
+
+    public function extendBook(Request $request, Borrowing $borrowing)
+    {
+        // Validate ownership
+        abort_if($borrowing->user_id !== Auth::id(), 403);
+
+        // Validate status is paid (can only extend active borrowing)
+        if ($borrowing->status !== 'paid') {
+            return redirect()->route('borrow.history')
+                ->with('error', 'Hanya buku yang masih dipinjam yang bisa diperpanjang');
+        }
+
+        $data = $request->validate([
+            'extend_duration' => ['required', 'in:3,7,14,30'],
+        ]);
+
+        $prices = [
+            3 => 10000,
+            7 => 20000,
+            14 => 35000,
+            30 => 60000,
+        ];
+
+        $duration = (int) $data['extend_duration'];
+        $price = $prices[$duration] ?? 0;
+
+        // Create a new borrowing record for the extension
+        $extension = Borrowing::create([
+            'user_id' => Auth::id(),
+            'book_id' => $borrowing->book_id,
+            'duration' => $duration,
+            'price' => $price,
+            'status' => 'pending',
+            // Mark as extension by storing original borrowing ID in a session
+        ]);
+
+        // Store the extension info in session for payment success handling
+        session(['extending_borrowing_id' => $borrowing->id]);
+
+        return redirect()->route('borrow.payment', $extension);
+    }
 }
+

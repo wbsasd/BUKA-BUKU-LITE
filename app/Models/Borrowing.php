@@ -21,6 +21,8 @@ class Borrowing extends Model
         'returned_at',
         'borrow_date',
         'return_date',
+        'warning_sent',
+        'warning_sent_at',
     ];
 
     protected $casts = [
@@ -29,6 +31,8 @@ class Borrowing extends Model
         'returned_at' => 'datetime',
         'borrow_date' => 'datetime',
         'return_date' => 'datetime',
+        'warning_sent_at' => 'datetime',
+        'warning_sent' => 'boolean',
     ];
 
     public function user()
@@ -42,12 +46,35 @@ class Borrowing extends Model
     }
 
     /**
-     * Calculate fine for late return
-     * Fine is Rp5,000 per day if overdue
+     * Calculate days overdue
+     */
+    public function getDaysLateAttribute()
+    {
+        // If returned, use returned_at; otherwise use now()
+        if ($this->status === 'returned') {
+            return 0;
+        }
+
+        $checkDate = $this->returned_at ?? now();
+
+        // If not yet due, no days late
+        if ($checkDate <= $this->due_date) {
+            return 0;
+        }
+
+        return $this->due_date->diffInDays($checkDate);
+    }
+
+    /**
+     * Calculate fine - Rp2,000 per day if overdue
+     * Used in admin dashboard for monitoring
      */
     public function getFineAttribute()
     {
-        // Use returned_at if already returned, otherwise use now()
+        if ($this->status === 'returned') {
+            return 0;
+        }
+
         $checkDate = $this->returned_at ?? now();
 
         // If not yet due, no fine
@@ -58,7 +85,24 @@ class Borrowing extends Model
         // Calculate days late
         $daysLate = $this->due_date->diffInDays($checkDate);
         
-        return $daysLate * 5000;
+        return $daysLate * 2000;
+    }
+
+    /**
+     * Get the actual status considering overdue
+     * Returns: paid (Dipinjam), overdue (Jatuh Tempo), returned (Sudah Dikembalikan)
+     */
+    public function getActualStatusAttribute()
+    {
+        if ($this->status === 'returned') {
+            return 'returned';
+        }
+
+        if ($this->status === 'paid' && now() > $this->due_date) {
+            return 'overdue';
+        }
+
+        return $this->status;
     }
 }
 

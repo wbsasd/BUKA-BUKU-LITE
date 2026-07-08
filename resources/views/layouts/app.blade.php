@@ -115,7 +115,7 @@
                 <a class="nav-link" href="{{ route('home') }}">Beranda</a>
                 <a class="nav-link" href="#">Discover</a>
                 <a class="nav-link" href="#">Wishlist</a>
-                <a class="nav-link" href="#">Order</a>
+                <a class="nav-link" href="{{ route('borrow.history') }}">Order</a>
                 <a class="nav-link" href="#">Pengaturan</a>
 
                 <hr class="my-3">
