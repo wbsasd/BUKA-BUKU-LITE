@@ -100,6 +100,7 @@ Route::middleware(['auth', 'membership.active'])->group(function () {
     Route::get('/borrow/{borrowing}/payment', [\App\Http\Controllers\BorrowController::class, 'payment'])->name('borrow.payment');
     Route::post('/borrow/{borrowing}/pay', [\App\Http\Controllers\BorrowController::class, 'pay'])->name('borrow.pay');
     Route::get('/borrow/{borrowing}/finish', [\App\Http\Controllers\BorrowController::class, 'finish'])->name('borrow.finish');
+    Route::post('/borrow/{borrowing}/return', [\App\Http\Controllers\BorrowController::class, 'returnBook'])->name('borrow.return');
 
     Route::get('/borrowings/history', [\App\Http\Controllers\BorrowController::class, 'history'])->name('borrow.history');
 });

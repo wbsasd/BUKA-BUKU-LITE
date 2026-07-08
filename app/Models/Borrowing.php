@@ -40,5 +40,25 @@ class Borrowing extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
+    /**
+     * Calculate fine for late return
+     * Fine is Rp5,000 per day if overdue
+     */
+    public function getFineAttribute()
+    {
+        // Use returned_at if already returned, otherwise use now()
+        $checkDate = $this->returned_at ?? now();
+
+        // If not yet due, no fine
+        if ($checkDate <= $this->due_date) {
+            return 0;
+        }
+
+        // Calculate days late
+        $daysLate = $this->due_date->diffInDays($checkDate);
+        
+        return $daysLate * 5000;
+    }
 }
 

@@ -83,4 +83,27 @@ class BorrowController extends Controller
 
         return view('borrowings.history', ['borrowings' => $borrowings]);
     }
+
+    public function returnBook(Request $request, Borrowing $borrowing)
+    {
+        // Validate ownership
+        abort_if($borrowing->user_id !== Auth::id(), 403);
+
+        // Validate status is paid
+        if ($borrowing->status !== 'paid') {
+            return redirect()->route('borrow.history')
+                ->with('error', 'Buku sudah dikembalikan atau status tidak valid');
+        }
+
+        // Update borrowing
+        $borrowing->status = 'returned';
+        $borrowing->returned_at = now();
+        $borrowing->save();
+
+        // Increase book stock
+        $borrowing->book->increment('stock');
+
+        return redirect()->route('borrow.history')
+            ->with('success', 'Buku berhasil dikembalikan');
+    }
 }
