@@ -144,9 +144,10 @@
             </thead>
             <tbody>
               @forelse($borrowings as $b)
-                @php
-                  $isOverdue = $b->status === 'paid' && now() > $b->due_date;
-                @endphp
+      @php
+        $isOverdue = $b->status === 'paid' && now() > $b->due_date;
+        $daysLate = $isOverdue ? (int) $b->due_date->diffInDays(now()) : 0;
+      @endphp
                 <tr class="border-bottom">
                   <!-- Book -->
                   <td>
@@ -188,9 +189,9 @@
                   </td>
                   <!-- Fine -->
                   <td>
-                    @if ($b->fine > 0)
-                      <span class="text-danger fw-500">Rp{{ number_format($b->fine, 0, ',', '.') }}</span>
-                    @else
+                @if ($b->fine > 0)
+                  <span class="text-danger fw-500">Rp{{ number_format((int) $b->fine, 0, ',', '.') }}</span>
+                @else
                       <span class="text-success">Rp0</span>
                     @endif
                   </td>

@@ -62,7 +62,7 @@ class Borrowing extends Model
             return 0;
         }
 
-        return $this->due_date->diffInDays($checkDate);
+        return (int) $this->due_date->diffInDays($checkDate);
     }
 
     /**
@@ -83,8 +83,8 @@ class Borrowing extends Model
         }
 
         // Calculate days late
-        $daysLate = $this->due_date->diffInDays($checkDate);
-        
+        $daysLate = (int) $this->due_date->diffInDays($checkDate);
+
         return $daysLate * 2000;
     }
 

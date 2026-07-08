@@ -141,8 +141,8 @@
           @forelse($borrowings ?? [] as $b)
             @php
               $isOverdue = $b->status === 'paid' && now() > $b->due_date;
-              $daysLate = $isOverdue ? $b->due_date->diffInDays(now()) : 0;
-              $fine = $isOverdue ? $daysLate * 2000 : 0;
+              $daysLate = $isOverdue ? (int) $b->due_date->diffInDays(now()) : 0;
+              $fine = $isOverdue ? ((int) $daysLate) * 2000 : 0;
             @endphp
             <tr>
               <!-- Cover -->
@@ -190,7 +190,7 @@
               <!-- Days Late -->
               <td>
                 @if ($isOverdue)
-                  <span class="text-danger fw-bold">{{ $daysLate }} hari</span>
+                  <span class="text-danger fw-bold">{{ (int) $daysLate }} hari</span>
                 @else
                   <span class="text-success">-</span>
                 @endif
@@ -199,7 +199,7 @@
               <!-- Fine -->
               <td>
                 @if ($fine > 0)
-                  <span class="text-danger fw-bold">Rp{{ number_format($fine, 0, ',', '.') }}</span>
+                  <span class="text-danger fw-bold">Rp{{ number_format((int) $fine, 0, ',', '.') }}</span>
                 @else
                   <span class="text-success">Rp0</span>
                 @endif
@@ -258,8 +258,8 @@
   @forelse($borrowings ?? [] as $b)
     @php
       $isOverdue = $b->status === 'paid' && now() > $b->due_date;
-      $daysLate = $isOverdue ? $b->due_date->diffInDays(now()) : 0;
-      $fine = $isOverdue ? $daysLate * 2000 : 0;
+      $daysLate = $isOverdue ? (int) $b->due_date->diffInDays(now()) : 0;
+      $fine = $isOverdue ? ((int) $daysLate) * 2000 : 0;
     @endphp
     <div class="card border-0 shadow-sm mb-3">
       <div class="card-body">
@@ -311,11 +311,11 @@
           @if ($isOverdue)
             <div class="col-6">
               <span class="text-muted d-block">Hari Terlambat</span>
-              <span class="fw-500 text-danger">{{ $daysLate }} hari</span>
+              <span class="fw-500 text-danger">{{ (int) $daysLate }} hari</span>
             </div>
             <div class="col-6">
               <span class="text-muted d-block">Denda</span>
-              <span class="fw-500 text-danger">Rp{{ number_format($fine, 0, ',', '.') }}</span>
+              <span class="fw-500 text-danger">Rp{{ number_format((int) $fine, 0, ',', '.') }}</span>
             </div>
           @endif
         </div>
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const userName = button.getAttribute('data-user-name');
     const bookTitle = button.getAttribute('data-book-title');
     const dueDate = button.getAttribute('data-due-date');
-    const daysLate = button.getAttribute('data-days-late');
+    const daysLate = parseInt(button.getAttribute('data-days-late') || '0', 10);
     const fine = parseInt(button.getAttribute('data-fine'));
 
     // Update modal content
