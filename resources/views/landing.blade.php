@@ -2,24 +2,60 @@
 
 @section('content')
 <div class="container">
-  {{-- Hero --}}
-  <section class="py-5">
-    <div class="row align-items-center">
-      <div class="col-md-7">
-        <h1 class="display-6 fw-bold">Selamat datang di Buka Buku Lite</h1>
-        <p class="lead text-muted">Temukan buku favoritmu, baca cuplikan, dan pinjam secara mudah.</p>
-        <div class="mb-3">
-          <x-search-bar placeholder="Cari judul, penulis, atau kategori..." name="q" />
+  {{-- Hero (Full Banner) --}}
+  <section class="pt-0">
+    <div class="pb-4">
+      <div
+        class="position-relative rounded-4 overflow-hidden shadow-sm"
+        style="height: clamp(500px, 55vh, 550px); background-image: url('https://picsum.photos/seed/library/1200/800'); background-size: cover; background-position: center; background-repeat: no-repeat;"
+      >
+        {{-- overlay gradient --}}
+        <div
+          aria-hidden="true"
+          class="position-absolute top-0 start-0 w-100 h-100"
+          style="background: linear-gradient(to right, rgba(0,0,0,.75), rgba(0,0,0,.25), rgba(0,0,0,.05));"
+        ></div>
+
+        {{-- content --}}
+        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center">
+          <div class="container">
+            <div class="row">
+              <div class="col-12 col-lg-7">
+                <div class="p-3 p-md-0">
+                  <h1 class="fw-bold text-white mb-3" style="font-size: clamp(44px, 4.6vw, 56px); line-height: 1.1;">
+                    Selamat datang
+                    <br>
+                    di Buka Buku Lite
+                  </h1>
+                  <div aria-hidden="true" class="mb-3" style="width: 44px; height: 3px; background: #0d6efd; border-radius: 2px;"></div>
+                  <p class="mb-4" style="color: rgba(255,255,255,.72); font-size: 1.05rem; line-height: 1.7; max-width: 380px;">
+                    Temukan, baca, dan pinjam buku dengan mudah.
+                  </p>
+
+                  <div class="mb-3" style="max-width: 520px;">
+                    <x-search-bar placeholder="Cari judul, penulis, atau kategori..." name="q" />
+                  </div>
+
+
+                  <div class="d-flex gap-2 flex-wrap">
+                    <x-button
+                      variant="primary"
+                      class="me-2"
+                      onclick="window.location='{{ route('login') }}'"
+                    >
+                      Masuk
+                    </x-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <x-button variant="primary" class="me-2" onclick="window.location='{{ route('login') }}'">Masuk</x-button>
-        </div>
-      </div>
-      <div class="col-md-5 d-none d-md-block">
-        <img src="https://picsum.photos/seed/library/600/400" alt="Hero" class="img-fluid rounded shadow-sm">
+
       </div>
     </div>
   </section>
+
 
   {{-- Kategori --}}
   <section class="py-3">
