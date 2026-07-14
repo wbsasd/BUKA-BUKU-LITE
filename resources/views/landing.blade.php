@@ -1,8 +1,54 @@
 @extends('layouts.app')
+<!-- PEMBUNGKUS UTAMA: Menggunakan w-100 agar selebar layar, position-relative, dan tinggi minimal (min-vh-50 atau disesuaikan) -->
+<div class="position-relative w-100 overflow-hidden" style="
+     background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.pexels.com/photos/16689056/pexels-photo-16689056.jpeg'); 
+     background-size: cover; 
+     background-position: center; 
+     min-height: 500px; /* Atur tinggi hero section di sini */
+">
+
+    <!-- KODE ANDA MULAI DARI SINI (Sudah disesuaikan sedikit agar pas di tengah) -->
+    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-lg-7">
+                    <div class="p-3 p-md-5">
+                        <h1 class="fw-bold text-white mb-3" style="font-size: clamp(44px, 4.6vw, 56px); line-height: 1.1;">
+                            Selamat datang
+                            <br>
+                            di Buka Buku Lite
+                        </h1>
+                        <div aria-hidden="true" class="mb-3" style="width: 44px; height: 3px; background: #0d6efd; border-radius: 2px;"></div>
+                        <p class="mb-4" style="color: rgba(255,255,255,.72); font-size: 1.05rem; line-height: 1.7; max-width: 380px;">
+                            Temukan, baca, dan pinjam buku dengan mudah.
+                        </p>
+
+                        <div class="mb-3" style="max-width: 520px;">
+                            <form class="d-flex" role="search" method="GET" action="http://127.0.0.1:8000">
+                                <div class="input-group">
+                                    <input type="search" name="q" value="" class="form-control" placeholder="Cari judul, penulis, atau kategori..." aria-label="Search">
+                                    <button class="btn btn-outline-secondary" type="submit">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-primary me-2" onclick="window.location='http://127.0.0.1:8000/login'">
+                                Masuk
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section('content')
 <div class="container">
-  {{-- Hero (Full Banner) --}}
+  <!-- {{-- Hero (Full Banner) --}}
   <section class="pt-0">
     <div class="pb-4">
       <div
@@ -54,8 +100,7 @@
 
       </div>
     </div>
-  </section>
-
+  </section> -->
 
   {{-- Kategori --}}
   <section class="py-3">
