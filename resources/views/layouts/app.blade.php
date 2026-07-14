@@ -108,8 +108,8 @@
 
         {{-- Keep sidebar HTML structure (do not move existing layout/grid) --}}
         <aside id="userSidebar" class="vh-100 bg-white border-end p-3 shadow-lg rounded-xl">
-            <div class="mb-4">
-                <h5 class="mb-0">Menu</h5>
+            <div class="mb-5">
+                <h5 class="mb-0"></h5>
             </div>
             <nav class="nav nav-pills flex-column">
                 <a class="nav-link" href="{{ route('home') }}">Beranda</a>

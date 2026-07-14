@@ -21,7 +21,7 @@
           <div class="container">
             <div class="row">
               <div class="col-12 col-lg-7">
-                <div class="p-3 p-md-0">
+                <div class="p-3 p-md-5">
                   <h1 class="fw-bold text-white mb-3" style="font-size: clamp(44px, 4.6vw, 56px); line-height: 1.1;">
                     Selamat datang
                     <br>

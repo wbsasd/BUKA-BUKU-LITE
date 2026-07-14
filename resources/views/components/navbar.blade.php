@@ -1,6 +1,6 @@
 @props(['brand' => config('app.name', 'Buka Buku')])
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+<!-- <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
       <span class="fw-semibold">{{ $brand }}</span>
@@ -17,4 +17,4 @@
       </div>
     </div>
   </div>
-</nav>
+</nav> -->
