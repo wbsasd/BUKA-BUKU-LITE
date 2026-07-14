@@ -44,7 +44,7 @@
             </li>
 
             <x-slot name="right">
-                <ul class="navbar-nav ms-auto d-flex align-items-center">
+                    <ul class="navbar-nav ms-auto d-flex align-items-center gap-2">
                     @guest
                         @if (Route::has('login'))
                             <li class="nav-item">
@@ -52,10 +52,65 @@
                             </li>
                         @endif
                     @else
-                        <li class="nav-item dropdown">
-                            <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                {{ Auth::user()->name }}
+                        @php
+                            $roleName = strtolower((Auth::user()->role ?? 'user'));
+                            $isPremium = in_array($roleName, ['premium','anggota premium','premium member']);
+                            $notifCount = 3; // dummy data
+                        @endphp
+
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                                <i class="bi bi-bell-fill"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:11px;">{{ $notifCount }}</span>
                             </a>
+                            <div class="dropdown-menu dropdown-menu-end p-2" style="min-width:340px;">
+                                <div class="px-3 py-2">
+                                    <div class="fw-semibold">Notifications</div>
+                                    <div class="small text-muted">Aktivitas terbaru</div>
+                                </div>
+                                <hr class="my-2">
+
+                                <div class="px-3 py-2">
+                                    <div class="small text-muted fw-semibold text-uppercase mb-2">Membership</div>
+                                    <div class="small">✔ Premium request approved</div>
+                                </div>
+                                <hr class="my-2">
+
+                                <div class="px-3 py-2">
+                                    <div class="small text-muted fw-semibold text-uppercase mb-2">Borrowing</div>
+                                    <div class="small">✔ “Design Patterns” borrowed</div>
+                                </div>
+                                <hr class="my-2">
+
+                                <div class="px-3 py-2">
+                                    <div class="small text-muted fw-semibold text-uppercase mb-2">Warning</div>
+                                    <div class="small">⚠ Due date soon (2 days)</div>
+                                </div>
+                                <hr class="my-2">
+
+                                <div class="px-3 py-2">
+                                    <div class="small text-muted fw-semibold text-uppercase mb-2">Denda</div>
+                                    <div class="small">✔ Payment received</div>
+                                </div>
+                                <hr class="my-2">
+
+                                <div class="px-3 py-2">
+                                    <div class="small text-muted fw-semibold text-uppercase mb-2">Return</div>
+                                    <div class="small">✔ Book returned successfully</div>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                <span>{{ Auth::user()->name }}</span>
+                                @if($isPremium)
+                                    <span class="bb-badge-premium">👑 PREMIUM MEMBER</span>
+                                @else
+                                    <span class="bb-badge-basic">Basic Member</span>
+                                @endif
+                            </a>
+
 
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="{{ route('logout') }}"

@@ -1,12 +1,9 @@
-# TODO
+# TODO - BUKA-BUKU-LITE UI/UX FINAL POLISH
 
-## Membership Premium Upgrade Flow Fix
-- [x] Audit `MembershipUpgradeController` current logic (guardCanRequestUpgrade + pay)
-- [x] Update `guardCanRequestUpgrade()` rules (guest, membership_status active only, deny premium role, deny existing pending membership_upgrades)
-- [x] Fix `MembershipUpgradeController::pay()` so it NEVER changes `users.membership_status`
-- [ ] Audit `Admin\AdminMembershipController` approve/reject to match requirements:
-  - [ ] Approve: membership_upgrades.status=active, users.role=premium, start_date/end_date
-  - [ ] Reject: membership_upgrades.status=rejected, users.role=pengguna, users.membership_status tetap active
-- [ ] Run quick manual verification checklist (route access + status changes)
+- [x] Step 1: Modernize `resources/views/dashboard.blade.php` (hero card, summary cards, continue reading cards w/ progress bar, recommendation grid hover, add activity timeline, improve membership card UI based on role in Blade)
+- [x] Step 2: Update navbar layout: add notification bell with dummy badge + dropdown sections in `resources/views/layouts/app.blade.php` (and/or update `resources/views/components/navbar.blade.php` if needed)
+- [x] Step 3: Add/upgrade design system CSS in `public/css/design-system.css` (rounded cards, shadows, hover lift, section spacing, badges)
+- [ ] Step 4: (Optional) Enhance components `resources/views/components/membership-card.blade.php` and `resources/views/components/book-card.blade.php` for consistent hover/rounded/premium visuals
+- [ ] Step 5: Quick sanity check: verify Bootstrap responsiveness and navbar dropdown/logout still work
 
 

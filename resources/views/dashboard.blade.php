@@ -5,53 +5,115 @@
   <div class="row">
     <main class="col-lg-9 col-12 py-4">
 
-      <div>
-        <div class="d-flex justify-content-between align-items-center mb-4">
+      {{-- Hero + Summary --}}
+      <div class="bb-stack">
+        <div class="d-flex justify-content-between align-items-center mb-4 bb-hero">
           <div>
-            <h4 class="mb-0">Dashboard</h4>
-            <small class="text-muted">Ringkasan aktivitas dan rekomendasi untuk Anda</small>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="bb-dot"></span>
+              <span class="text-uppercase letter-spacing text-muted fw-semibold" style="font-size:12px;">Digital Library</span>
+            </div>
+            <h2 class="fw-bold mb-2">Halo, {{ Auth::user()?->name ?? 'Pengguna' }} 👋</h2>
+            <p class="mb-0 text-muted">Selamat datang kembali di <span class="fw-semibold">BUKA-BUKU-LITE</span>. Lanjutkan membaca dan temukan rekomendasi terbaru untuk Anda.</p>
+          </div>
+          <div class="bb-hero-illustration" aria-hidden="true">
+            <div class="bb-hero-blob"></div>
+            <div class="bb-hero-badge">
+              <i class="bi bi-book-half"></i>
+            </div>
           </div>
         </div>
 
-        <div class="card mb-4">
-          <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="fw-bold">Hello, {{ Auth::user()?->name ?? 'Pengguna' }}!</h5>
-              <p class="mb-0 text-muted">Lanjutkan membaca dan lihat rekomendasi terbaru untuk Anda.</p>
+        {{-- Summary Cards (4 horizontal) --}}
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3">
+            <div class="bb-card bb-summary-card h-100">
+              <div class="bb-summary-icon text-primary">
+                <i class="bi bi-bookmark-check"></i>
+              </div>
+              <div>
+{{ $borrowingCount ?? 0 }}
+                <div class="bb-summary-title">Buku Sedang Dipinjam</div>
+              </div>
             </div>
-            <div>
-              <img src="https://picsum.photos/seed/user/120/120" class="rounded-circle" alt="avatar">
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="bb-card bb-summary-card h-100">
+              <div class="bb-summary-icon text-warning">
+                <i class="bi bi-gem"></i>
+              </div>
+              <div>
+{{ $membershipLabel ?? '—' }}
+                <div class="bb-summary-title">Membership</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="bb-card bb-summary-card h-100">
+              <div class="bb-summary-icon text-danger">
+                <i class="bi bi-cash"></i>
+              </div>
+              <div>
+{{ $totalDenda ?? 0 }}
+                <div class="bb-summary-title">Total Denda</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="bb-card bb-summary-card h-100">
+              <div class="bb-summary-icon text-info">
+                <i class="bi bi-journal-bookmark"></i>
+              </div>
+              <div>
+{{ $booksReadCount ?? 0 }}
+                <div class="bb-summary-title">Total Buku Dibaca</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="row g-4">
           <div class="col-lg-8">
+            {{-- Continue Reading (horizontal cards) --}}
             <div class="mb-4">
-              <h6>Continue Reading</h6>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Continue Reading</h5>
+                <span class="small text-muted">Lanjutkan tepat dari progres terakhir Anda</span>
+              </div>
+
               <div class="row g-3">
-                {{-- Continue Reading saat ini dibiarkan kosong bila belum ada histori (sesuai instruksi), tanpa mengubah layout --}}
+                {{-- Continue Reading saat ini dibiarkan kosong bila belum ada histori (sesuai instruksi) --}}
                 @if($latestBooks->isNotEmpty())
                   @foreach($latestBooks->take(3) as $book)
-                    <div class="col-12 col-md-6">
-                      <div class="d-flex gap-3 align-items-center p-3 border rounded">
-                        <img
-                          src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
-                          alt="cover"
-                          class="img-fluid"
-                          style="width:60px;height:80px;object-fit:cover"
-                        >
-                        <div class="flex-grow-1">
-                          <div class="fw-semibold">{{ $book->title }}</div>
-                          <div class="small text-muted">{{ $book->author }} · Hal. 12/200</div>
-                          <div class="mt-2">
-                            <div class="progress" style="height:6px">
-                              <div class="progress-bar" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="col-12">
+                      <div class="bb-card bb-continue-item p-3 p-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                          <div class="bb-cover">
+                            <img
+                              src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+                              alt="cover"
+                            >
+                          </div>
+
+                          <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                              <div>
+                                <div class="fw-semibold bb-truncate-2">{{ $book->title }}</div>
+                                <div class="small text-muted">{{ $book->author }}</div>
+                              </div>
+                              <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-primary" style="border-radius:12px;">Lanjutkan</a>
+                            </div>
+
+                            <div class="mt-3">
+                              <div class="progress" style="height:8px; border-radius:999px; background:#eef2ff;">
+                                <div class="progress-bar" role="progressbar" style="width: 30%; border-radius:999px;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                              </div>
+                              <div class="d-flex justify-content-between small text-muted mt-2">
+                                <span>Hal. 12/200</span>
+                                <span>30% selesai</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div>
-                          <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Lanjutkan</a>
                         </div>
                       </div>
                     </div>
@@ -60,71 +122,143 @@
               </div>
             </div>
 
+            {{-- Recommendation (grid cards) --}}
             <div class="mb-4">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Rekomendasi Buku</h6>
-                <a href="#" class="small">Lihat semua</a>
+                <h5 class="mb-0">Recommendation</h5>
+                <a href="#" class="small text-primary text-decoration-none">Lihat semua</a>
               </div>
 
-@if($recommendedBooks->isEmpty())
+              @if($recommendedBooks->isEmpty())
                 @include('user.empty-books-message')
               @else
                 <div class="row g-3">
                   @foreach($recommendedBooks->take(4) as $book)
                     <div class="col-6 col-md-3">
-                      <x-book-card
-                        :bookId="$book->id"
-                        title="{{ $book->title }}"
-                        author="{{ $book->author }}"
-                        cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : null }}"
-                        rating="4"
-                      >
-                        <div class="mt-2 d-grid">
-                          <a href="{{ route('book.detail', ['id' => $book->id]) }}" class="btn btn-sm btn-primary">Pinjam</a>
-                        </div>
-                      </x-book-card>
+                      <div class="bb-hover-lift">
+                        <x-book-card
+                          :bookId="$book->id"
+                          title="{{ $book->title }}"
+                          author="{{ $book->author }}"
+                          cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : null }}"
+                          rating="4"
+                        >
+                          <div class="mt-2 d-grid">
+                            <a href="{{ route('book.detail', ['id' => $book->id]) }}" class="btn btn-sm btn-primary" style="border-radius:12px;">Lihat Detail</a>
+                          </div>
+                        </x-book-card>
+                      </div>
                     </div>
                   @endforeach
                 </div>
               @endif
             </div>
 
+            {{-- Kategori --}}
             <div class="mb-4">
-              <h6 class="mb-2">Kategori</h6>
+              <h5 class="mb-3">Kategori</h5>
               <div class="d-flex gap-2 flex-wrap">
                 @foreach($categories as $cat)
-                  <a href="#" class="btn btn-outline-secondary btn-sm">{{ $cat->name }}</a>
+                  <a href="#" class="btn btn-outline-secondary btn-sm bb-pill">{{ $cat->name }}</a>
                 @endforeach
+              </div>
+            </div>
+
+            {{-- Activity Timeline --}}
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Aktivitas Terbaru</h5>
+                <span class="small text-muted">Ringkasan aktivitas Anda</span>
+              </div>
+
+              <div class="bb-timeline card">
+                <div class="card-body">
+                  <ul class="list-unstyled mb-0">
+                    <li class="bb-timeline-item">
+                      <span class="bb-timeline-dot bg-primary"></span>
+                      <div class="bb-timeline-content">
+                        <div class="fw-semibold">✔ Meminjam Buku</div>
+                        <div class="small text-muted">Baru saja Anda meminjam buku favorit Anda.</div>
+                      </div>
+                    </li>
+                    <li class="bb-timeline-item">
+                      <span class="bb-timeline-dot bg-warning"></span>
+                      <div class="bb-timeline-content">
+                        <div class="fw-semibold">✔ Membership Premium Disetujui</div>
+                        <div class="small text-muted">Akses premium aktif untuk akun Anda.</div>
+                      </div>
+                    </li>
+                    <li class="bb-timeline-item">
+                      <span class="bb-timeline-dot bg-success"></span>
+                      <div class="bb-timeline-content">
+                        <div class="fw-semibold">✔ Mengembalikan Buku</div>
+                        <div class="small text-muted">Pengembalian telah diproses.</div>
+                      </div>
+                    </li>
+                    <li class="bb-timeline-item">
+                      <span class="bb-timeline-dot bg-danger"></span>
+                      <div class="bb-timeline-content">
+                        <div class="fw-semibold">✔ Membayar Denda</div>
+                        <div class="small text-muted">Pembayaran denda berhasil.</div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
 
+          {{-- Right column --}}
           <div class="col-lg-4">
+            {{-- Membership Card --}}
             <div class="mb-3">
-              <x-membership-card role="Anggota Premium" name="Anna" expires="31 Des 2026">
-                <div class="mt-2 d-grid">
-                  <a href="#" class="btn btn-sm btn-outline-light btn-primary">Kelola Keanggotaan</a>
-                </div>
-              </x-membership-card>
+              @php
+                $roleName = strtolower((Auth::user()->role ?? 'user'));
+                $isPremium = in_array($roleName, ['premium','anggota premium','premium member']);
+              @endphp
+
+              @if($isPremium)
+                <x-membership-card role="👑 Premium Member" name="{{ Auth::user()->name ?? 'User' }}" expires="31 Des 2026">
+                  <div class="mt-3">
+                    <div class="progress" style="height:8px; border-radius:999px; background:#eef2ff;">
+                      <div class="progress-bar bg-warning" role="progressbar" style="width:65%; border-radius:999px;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mt-2">
+                      <span>Progress</span>
+                      <span>~ 65% sisa</span>
+                    </div>
+                    <div class="mt-3 d-grid">
+                      <a href="#" class="btn btn-sm btn-primary" style="border-radius:12px;">Kelola Membership</a>
+                    </div>
+                  </div>
+                </x-membership-card>
+              @else
+                <x-membership-card role="Basic Member" name="{{ Auth::user()->name ?? 'User' }}">
+                  <div class="mt-3 d-grid">
+                    <a href="#" class="btn btn-sm btn-outline-primary" style="border-radius:12px;">Upgrade Sekarang</a>
+                  </div>
+                </x-membership-card>
+              @endif
             </div>
 
-            <div class="card mb-3">
+            {{-- Existing right recommendation list, modernized --}}
+            <div class="card mb-3 bb-card">
               <div class="card-body">
-                <h6 class="mb-1">Rekomendasi Untuk Anda</h6>
-                <p class="small text-muted mb-2">Berdasarkan bacaan terakhir Anda</p>
-                <ul class="list-unstyled small">
-@if($recommendedBooks->isEmpty())
+                <h5 class="mb-1">Rekomendasi Untuk Anda</h5>
+                <p class="small text-muted mb-3">Berdasarkan bacaan terakhir Anda</p>
+                <ul class="list-unstyled small mb-0">
+                  @if($recommendedBooks->isEmpty())
                     <li class="py-2 text-muted">
                       @include('user.empty-books-message')
                     </li>
                   @else
                     @foreach($recommendedBooks->take(3) as $book)
                       <li class="py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <div>
+                        <div class="pe-2">
                           <div class="fw-semibold">{{ $book->title }}</div>
                           <div class="text-muted">{{ $book->author }}</div>
                         </div>
-                        <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary">Lihat</a>
+                        <a href="{{ route('reader', ['id' => $book->id]) }}" class="btn btn-sm btn-outline-primary" style="border-radius:12px;">Lihat</a>
                       </li>
                     @endforeach
                   @endif
@@ -138,6 +272,8 @@
   </div>
 </div>
 @endsection
+
+
 
 
 
