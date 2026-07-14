@@ -1,19 +1,12 @@
 # TODO
 
-## UI BUKA-BUKU-LITE - Sidebar Hamburger (User)
-- [ ] Update `resources/views/layouts/app.blade.php`:
-  - [x] Replace desktop sidebar with responsive hamburger sidebar for USER only
-  - [x] Sidebar default closed
-  - [x] Hamburger toggles sidebar open/close with smooth 300ms transition
-  - [x] Add semi-transparent backdrop; clicking backdrop closes sidebar
-  - [x] Ensure hamburger icon toggles sidebar closed
-- [x] Sidebar menu items: Beranda, Discover, Wishlist, Order, Pengaturan, Logout (use existing logout form/route)
-- [x] Keep routes/controllers unchanged
-- [x] Keep admin layout unchanged
-
-- [ ] Manual test on:
-  - [ ] Dashboard User
-  - [ ] PDF Reader
-  - [ ] Page that uses same user layout
+## Membership Premium Upgrade Flow Fix
+- [x] Audit `MembershipUpgradeController` current logic (guardCanRequestUpgrade + pay)
+- [x] Update `guardCanRequestUpgrade()` rules (guest, membership_status active only, deny premium role, deny existing pending membership_upgrades)
+- [x] Fix `MembershipUpgradeController::pay()` so it NEVER changes `users.membership_status`
+- [ ] Audit `Admin\AdminMembershipController` approve/reject to match requirements:
+  - [ ] Approve: membership_upgrades.status=active, users.role=premium, start_date/end_date
+  - [ ] Reject: membership_upgrades.status=rejected, users.role=pengguna, users.membership_status tetap active
+- [ ] Run quick manual verification checklist (route access + status changes)
 
 

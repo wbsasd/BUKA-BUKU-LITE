@@ -9,6 +9,13 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('admin.dashboard');
+        $pendingCount = \App\Models\MembershipUpgrade::query()
+            ->where('status', 'pending')
+            ->count();
+
+        return view('admin.dashboard', [
+            'membershipPendingCount' => $pendingCount,
+        ]);
     }
+
 }

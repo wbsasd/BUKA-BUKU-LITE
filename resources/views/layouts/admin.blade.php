@@ -44,11 +44,13 @@
                     <a class="nav-link" href="{{ route('admin.books.index') }}">Books</a>
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Categories</a>
                     <a class="nav-link" href="{{ route('admin.borrowings.index') }}" >Borrowings</a>
-                    <a class="nav-link" href="{{ route('admin.membership-requests.index') }}">Permintaan Registrasi</a>
 
+                    <a class="nav-link" href="{{ route('admin.memberships.index') }}">Membership</a>
+                    <a class="nav-link" href="{{ route('admin.membership-requests.index') }}">Permintaan Registrasi</a>
 
                     <a class="nav-link" href="{{ route('admin.reports.index') }}">Reports</a>
                     <a class="nav-link" href="{{ route('admin.users.index') }}">Users</a>
+
 
                     <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Settings</a>
                 </x-sidebar>

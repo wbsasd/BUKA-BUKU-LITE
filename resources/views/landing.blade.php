@@ -182,8 +182,13 @@
           <p class="mb-0">Akses baca penuh e-book tanpa batas dan pinjam lebih banyak buku.</p>
         </div>
         <div class="col-md-4 p-4 text-md-end">
-          <x-button variant="light">Upgrade Sekarang</x-button>
+          @auth
+            <x-button variant="light" onclick="window.location='{{ route('membership.upgrade.plans') }}'">Upgrade Sekarang</x-button>
+          @else
+            <x-button variant="light" onclick="window.location='{{ route('login') }}'">Upgrade Sekarang</x-button>
+          @endauth
         </div>
+
       </div>
     </div>
   </section>

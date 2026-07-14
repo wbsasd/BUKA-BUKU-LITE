@@ -64,8 +64,19 @@ Route::prefix('admin')->group(function () {
         Route::resource('borrowings', \App\Http\Controllers\Admin\BorrowingController::class, ['as' => 'admin']);
         Route::post('borrowings/{borrowing}/warning', [\App\Http\Controllers\Admin\BorrowingController::class, 'sendWarning'])->name('admin.borrowings.warning');
 
-        // Membership
-        Route::resource('memberships', \App\Http\Controllers\Admin\MembershipController::class, ['as' => 'admin']);
+        // Membership Upgrade (New - source of truth: membership_upgrades)
+        Route::resource('memberships', \App\Http\Controllers\Admin\AdminMembershipController::class, ['as' => 'admin'])->only([
+            'index',
+            'show',
+        ]);
+
+        // Approve/Reject (New)
+        Route::post('memberships/{membership}/approve', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'approve'])
+            ->name('admin.memberships.approve');
+
+        Route::post('memberships/{membership}/reject', [\App\Http\Controllers\Admin\AdminMembershipController::class, 'reject'])
+            ->name('admin.memberships.reject');
+
 
         // Settings
         Route::resource('settings', \App\Http\Controllers\Admin\SettingController::class, ['as' => 'admin']);
@@ -93,6 +104,26 @@ Route::prefix('admin')->group(function () {
 
 Auth::routes(['register' => false]);
 
+// =============================
+// Membership Upgrade (User flow)
+// =============================
+Route::middleware(['auth'])->group(function () {
+    Route::get('/membership/upgrade', [\App\Http\Controllers\MembershipUpgradeController::class, 'plans'])
+        ->name('membership.upgrade.plans');
+
+    Route::post('/membership/upgrade/review', [\App\Http\Controllers\MembershipUpgradeController::class, 'review'])
+        ->name('membership.upgrade.review');
+
+    Route::get('/membership/upgrade/{upgrade}/payment', [\App\Http\Controllers\MembershipUpgradeController::class, 'payment'])
+        ->name('membership.upgrade.payment');
+
+    Route::post('/membership/upgrade/{upgrade}/pay', [\App\Http\Controllers\MembershipUpgradeController::class, 'pay'])
+        ->name('membership.upgrade.pay');
+
+    Route::get('/membership/upgrade/{upgrade}/finish', [\App\Http\Controllers\MembershipUpgradeController::class, 'finish'])
+        ->name('membership.upgrade.finish');
+});
+
 // Borrowing user flow
 Route::middleware(['auth', 'membership.active'])->group(function () {
     Route::get('/book/{book}/booking', [\App\Http\Controllers\BorrowController::class, 'booking'])->name('borrow.booking');
@@ -106,6 +137,7 @@ Route::middleware(['auth', 'membership.active'])->group(function () {
 
     Route::get('/borrowings/history', [\App\Http\Controllers\BorrowController::class, 'history'])->name('borrow.history');
 });
+
 
 // =============================
 // Authorization for Login User
