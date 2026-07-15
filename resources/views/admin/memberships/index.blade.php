@@ -105,40 +105,65 @@
                             <th class="small">Harga</th>
                             <th class="small">Metode Pembayaran</th>
                             <th class="small">Tanggal Request</th>
+                            <th class="small">Start Date</th>
+                            <th class="small">Expired Date</th>
+                            <th class="small">Remaining Days</th>
                             <th class="small">Status</th>
                             <th class="small text-center">Aksi</th>
+
                         </tr>
+
                     </thead>
                     <tbody>
                         @forelse($memberships as $index => $m)
                             @php
-                                $statusLabel = match($m->status) {
-                                    'active' => 'Approved',
+                                // membership_upgrades.status: pending / approved / rejected
+                                $status = $m->status;
+                                $user = $m->user;
+
+                                // UI derived expired ONLY for display, based on membership_upgrades.end_date
+
+                                $isExpired = $status === 'approved' && $m->end_date
+                                    ? \Illuminate\Support\Carbon::parse($m->end_date)->lt(now()->toDateString())
+                                    : false;
+
+                                $effectiveStatus = $isExpired ? 'expired' : $status;
+
+                                $statusLabel = match($effectiveStatus) {
+                                    'approved' => 'Approved',
                                     'rejected' => 'Rejected',
+                                    'expired' => 'Expired',
                                     default => 'Pending',
                                 };
 
-                                // Expired label: treat as expired if users has end_date and is past.
-                                $isExpired = false;
-                                if ($m->status === 'active') {
-                                    if ($m->user?->end_date) {
-                                        $isExpired = 
-                                            
-                                            \Illuminate\Support\Carbon::parse($m->user->end_date)->lt(now());
+                                $badge = match($effectiveStatus) {
+                                    'pending' => 'bg-warning text-dark',
+                                    'approved' => 'bg-success text-white',
+                                    'rejected' => 'bg-danger text-white',
+                                    'expired' => 'bg-secondary text-white',
+                                    default => 'bg-secondary text-white',
+                                };
+
+                                // Start/Expired date display
+                                $startDateLabel = $m->status === 'approved'
+                                    ? ($m->start_date ? \Illuminate\Support\Carbon::parse($m->start_date)->format('d M Y') : '-')
+                                    : '-';
+
+                                $expiredDateLabel = $m->status === 'approved'
+                                    ? ($m->end_date ? \Illuminate\Support\Carbon::parse($m->end_date)->format('d M Y') : '-')
+                                    : '-';
+
+                                // Remaining days rules
+                                $remainingDays = '-';
+                                if ($m->status === 'approved') {
+                                    if ($m->end_date && \Illuminate\Support\Carbon::parse($m->end_date)->lt(now()->toDateString())) {
+                                        $remainingDays = 'Expired';
+                                    } elseif ($m->end_date) {
+                                        $remainingDays = \Illuminate\Support\Carbon::today()->diffInDays($m->end_date);
                                     }
                                 }
 
-                                if ($isExpired) {
-                                    $statusLabel = 'Expired';
-                                }
 
-                                $badge = match($statusLabel) {
-                                    'Pending' => 'bg-warning text-dark',
-                                    'Approved' => 'bg-success text-white',
-                                    'Rejected' => 'bg-danger text-white',
-                                    'Expired' => 'bg-secondary text-white',
-                                    default => 'bg-secondary text-white'
-                                };
 
                                 $no = ($memberships->currentPage() - 1) * $memberships->perPage() + $index + 1;
                             @endphp
@@ -167,6 +192,15 @@
                                     <small class="text-muted">{{ $m->requested_at?->format('d M Y') }}</small>
                                 </td>
                                 <td>
+                                    <small class="fw-semibold">{{ $startDateLabel }}</small>
+                                </td>
+                                <td>
+                                    <small class="fw-semibold">{{ $expiredDateLabel }}</small>
+                                </td>
+                                <td>
+                                    <small class="fw-semibold">{{ $remainingDays }}</small>
+                                </td>
+                                <td>
                                     <span class="badge {{ $badge }}">{{ $statusLabel }}</span>
                                 </td>
                                 <td class="text-center">
@@ -175,25 +209,30 @@
                                             Detail
                                         </a>
 
-                                        <div class="d-flex gap-1">
-                                            <button type="button" class="btn btn-sm btn-success" 
-                                                data-bs-toggle="modal" data-bs-target="#approveModal"
-                                                data-id="{{ $m->id }}">
-                                                Approve
-                                            </button>
+                                        @if($m->status === 'pending')
+                                            <div class="d-flex gap-1">
+                                                <button type="button" class="btn btn-sm btn-success"
+                                                    data-bs-toggle="modal" data-bs-target="#approveModal"
+                                                    data-id="{{ $m->id }}">
+                                                    Approve
+                                                </button>
 
-                                            <button type="button" class="btn btn-sm btn-danger" 
-                                                data-bs-toggle="modal" data-bs-target="#rejectModal"
-                                                data-id="{{ $m->id }}">
-                                                Reject
-                                            </button>
-                                        </div>
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                                    data-id="{{ $m->id }}">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
+
+
                         @empty
                             <tr>
                                 <td colspan="10" class="text-center text-muted py-4">
+
                                     <i class="fas fa-inbox fa-2x mb-2 d-block opacity-25"></i>
                                     Tidak ada data membership.
                                 </td>

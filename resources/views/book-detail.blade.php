@@ -48,8 +48,13 @@
                                     </p>
                                     <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
                                         <span class="badge bg-secondary">Kategori: {{ $book->category?->name ?? 'Umum' }}</span>
-                                        <span class="badge bg-light text-dark">Stock: <strong>{{ $book->stock }}</strong></span>
+                                        @if((int) $book->stock > 0)
+                                            <span class="badge bg-light text-dark">Stok: <strong>{{ $book->stock }}</strong> buku</span>
+                                        @else
+                                            <span class="badge bg-light text-dark">Stok Habis</span>
+                                        @endif
                                     </div>
+
                                 </div>
 
                                 @if(trim($book->description ?? ''))
@@ -61,16 +66,26 @@
 
                                 <div class="rating-summary d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mt-4">
                                     <div class="d-flex align-items-center gap-3">
-                                        <div class="star-icons text-warning fs-5">
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-half"></i>
+                                        <div class="star-icons text-warning fs-5" aria-label="average rating">
+                                            @php
+                                                $avg = $avgRating ?? 0;
+                                                $fullStars = (int) floor($avg);
+                                                $hasHalf = ($avg - $fullStars) >= 0.5;
+                                            @endphp
+
+                                            @for($i = 0; $i < 5; $i++)
+                                                @if($i < $fullStars)
+                                                    <i class="bi bi-star-fill"></i>
+                                                @elseif($i === $fullStars && $hasHalf)
+                                                    <i class="bi bi-star-half"></i>
+                                                @else
+                                                    <i class="bi bi-star"></i>
+                                                @endif
+                                            @endfor
                                         </div>
                                         <div>
-                                            <div class="h4 mb-1">4.8</div>
-                                            <div class="text-muted">200 ulasan</div>
+                                            <div class="h4 mb-1">{{ $avgRating ? number_format($avgRating, 1) : '0.0' }}</div>
+                                            <div class="text-muted">{{ $reviewsCount }} ulasan</div>
                                         </div>
                                     </div>
 
@@ -87,13 +102,19 @@
                                             @elseif($membershipStatus === 'rejected')
                                                 <a href="#" class="btn btn-primary" onclick="alert('Permintaan membership Anda ditolak.'); return false;">Pinjam Buku</a>
                                             @else
-                                                <a href="{{ $book->stock > 0 ? route('borrow.booking', $book) : '#' }}" class="btn btn-primary">Pinjam Buku</a>
+                                                @if((int) $book->stock > 0)
+                                                    <a href="{{ route('borrow.booking', $book) }}" class="btn btn-primary">Pinjam Buku</a>
+                                                @else
+                                                    <a href="#" class="btn btn-secondary" aria-disabled="true" onclick="return false;">Stok Habis</a>
+                                                @endif
                                             @endif
+
                                         @endguest
 
                                         <a href="{{ $book->stock > 0 ? route('reader', ['id' => $book->id]) : '#' }}" class="btn btn-outline-primary">Baca Sekarang</a>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -105,31 +126,162 @@
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body p-4">
                     <h5 class="mb-4">Rating & Ulasan</h5>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="text-warning" style="font-size: 1.1rem;">
+                                    @php
+                                        $avg = $avgRating ?? 0;
+                                        $fullStars = (int) floor($avg);
+                                        $hasHalf = ($avg - $fullStars) >= 0.5;
+                                    @endphp
+                                    @for($i = 0; $i < 5; $i++)
+                                        @if($i < $fullStars)
+                                            <i class="bi bi-star-fill"></i>
+                                        @elseif($i === $fullStars && $hasHalf)
+                                            <i class="bi bi-star-half"></i>
+                                        @else
+                                            <i class="bi bi-star"></i>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <div>
+                                    <div class="h4 mb-0">{{ $avgRating ? number_format($avgRating, 1) : '0.0' }}</div>
+                                    <div class="text-muted">{{ $reviewsCount }} ulasan</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @auth
+                        <div class="mb-4">
+                            <div class="card review-card border-0 shadow-sm">
+                                <div class="card-body">
+                                    @if($myReview)
+                                        <form method="POST" action="{{ route('book.reviews.update', $myReview->id) }}">
+                                            @csrf
+                                            @method('PUT')
+                                    @else
+                                        <form method="POST" action="{{ route('book.reviews.store', $book->id) }}">
+                                            @csrf
+                                    @endif
+
+                                            <div class="mb-3 rating-input-block">
+                                                <label class="form-label">Rating</label>
+
+                                                <div class="rating-stars-wrapper" data-rating-initial="{{ (int) old('rating', $myReview?->rating) ?: 0 }}">
+                                                    {{-- Hidden input tetap untuk backend menerima integer 1-5 --}}
+                                                    <input
+                                                        type="hidden"
+                                                        name="rating"
+                                                        id="rating"
+                                                        value="{{ (int) old('rating', $myReview?->rating) ?: 0 }}"
+                                                    >
+
+                                                    <div class="rating-stars" role="radiogroup" aria-label="Pilih rating buku">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <button
+                                                                type="button"
+                                                                class="rating-star"
+                                                                data-value="{{ $i }}"
+                                                                aria-label="{{ $i }}"
+                                                            >
+                                                                <i class="bi bi-star-fill" aria-hidden="true"></i>
+                                                            </button>
+                                                        @endfor
+                                                    </div>
+
+                                                    <div class="rating-label text-muted mt-2" id="rating-label">&nbsp;</div>
+                                                </div>
+
+                                                <div class="rating-front-validation text-danger small mt-1" id="rating-front-validation" style="display:none;">
+                                                    Silakan pilih rating terlebih dahulu.
+                                                </div>
+
+                                                @error('rating')
+                                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="review" class="form-label">Ulasan</label>
+                                                <textarea
+                                                    id="review"
+                                                    name="review"
+                                                    class="form-control"
+                                                    rows="4"
+                                                >{{ old('review', $myReview?->review) }}</textarea>
+                                                @error('review')
+                                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="d-flex justify-content-end">
+                                                <button type="submit" class="btn btn-primary">
+                                                    {{ $myReview ? 'Simpan Perubahan' : 'Kirim Ulasan' }}
+                                                </button>
+                                            </div>
+                                        </form>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mb-4">
+                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                Masuk untuk memberi ulasan
+                            </a>
+                        </div>
+                    @endauth
+
                     <div class="row row-cols-1 row-cols-md-2 g-3">
-                        @for($i = 1; $i <= 3; $i++)
+                        @forelse($reviews as $review)
+                            @php
+                                $isOwner = auth()->check() && auth()->id() === $review->user_id;
+                                $userName = $review->user?->name ?? 'Pengguna';
+                            @endphp
                             <div class="col">
                                 <div class="card review-card h-100 border-0 shadow-sm">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center gap-3 mb-3">
-                                            <div class="review-avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center">
-                                                {{ strtoupper(substr('U'.$i, 0, 1)) }}
+                                            <div class="review-avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center overflow-hidden">
+                                                @if($review->user?->avatar)
+                                                    <img src="{{ asset('storage/'.$review->user->avatar) }}" alt="{{ $review->user->name }}" style="width:100%;height:100%;object-fit:cover;" />
+                                                @else
+                                                    {{ strtoupper(substr($review->user?->name ?? 'U', 0, 1)) }}
+                                                @endif
                                             </div>
-                                            <div>
-                                                <h6 class="mb-1">Pengguna {{ $i }}</h6>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ $review->user?->name ?? 'Pengguna' }}</h6>
                                                 <div class="text-warning small">
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
-                                                    <i class="bi bi-star-fill"></i>
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="bi bi-star-fill" style="opacity: {{ $review->rating >= $i ? 1 : 0.3 }};"></i>
+                                                    @endfor
                                                 </div>
+                                                <div class="text-muted small mt-1">{{ $review->created_at?->diffForHumans() }}</div>
                                             </div>
+
+                                            @if($isOwner)
+                                                <div class="ms-2 d-flex flex-column gap-2 align-items-end">
+                                                    <a href="#" class="btn btn-sm btn-outline-primary" onclick="window.scrollTo({top:0,behavior:'smooth'}); return false;">Edit</a>
+                                                    <form method="POST" action="{{ route('book.reviews.destroy', $review->id) }}" onsubmit="return confirm('Hapus ulasan?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                                                    </form>
+                                                </div>
+                                            @endif
                                         </div>
-                                        <p class="text-muted mb-0">Ulasan singkat tentang buku ini. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+
+                                        <p class="text-muted mb-0">{{ $review->review }}</p>
                                     </div>
                                 </div>
                             </div>
-                        @endfor
+                        @empty
+                            <div class="col-12">
+                                <div class="text-muted">Belum ada ulasan untuk buku ini.</div>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -192,6 +344,57 @@
 .book-detail-card {
     border-radius: 1rem;
 }
+
+/* ===== Interaktif Rating (UI saja) ===== */
+.rating-stars-wrapper {
+    --star-size: 2.2rem;
+}
+
+.rating-stars {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    user-select: none;
+}
+
+.rating-star {
+    width: var(--star-size);
+    height: var(--star-size);
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(1);
+    transition: transform 160ms ease, color 160ms ease, filter 160ms ease;
+}
+
+.rating-star i {
+    font-size: var(--star-size);
+    transition: transform 160ms ease, opacity 160ms ease, color 160ms ease;
+}
+
+.rating-star:hover {
+    transform: scale(1.08);
+}
+
+.rating-star.is-active i {
+    color: #f5c400; /* kuning */
+    opacity: 1;
+    filter: drop-shadow(0 4px 10px rgba(245, 196, 0, 0.25));
+}
+
+.rating-star:not(.is-active) i {
+    color: #b0b0b0; /* abu-abu */
+    opacity: 1;
+}
+
+.rating-front-validation {
+    min-height: 18px;
+}
+
 .book-cover-wrapper {
     min-height: 100%;
 }
@@ -270,4 +473,84 @@
     }
 }
 </style>
+
+@push('scripts')
+<script>
+(function () {
+    const wrapper = document.querySelector('.rating-stars-wrapper');
+    if (!wrapper) return;
+
+    const ratingInput = wrapper.querySelector('#rating');
+    const stars = Array.from(wrapper.querySelectorAll('.rating-star'));
+    const labelEl = wrapper.querySelector('#rating-label');
+    const validationEl = wrapper.querySelector('#rating-front-validation');
+
+    const labels = {
+        1: 'Sangat Buruk',
+        2: 'Buruk',
+        3: 'Cukup',
+        4: 'Bagus',
+        5: 'Sangat Bagus'
+    };
+
+    function setActive(value, mode) {
+        const v = Number(value || 0);
+
+        stars.forEach(function (btn) {
+            const starValue = Number(btn.dataset.value);
+            btn.classList.toggle('is-active', starValue <= v);
+        });
+
+        if (labelEl) {
+            labelEl.textContent = v >= 1 ? (labels[v] || '') : '';
+        }
+
+        if (mode === 'click') {
+            if (ratingInput) ratingInput.value = String(v);
+        }
+    }
+
+    function hideValidation() {
+        if (validationEl) validationEl.style.display = 'none';
+    }
+
+    // Init (edit mode / old input)
+    const initial = Number(wrapper.dataset.ratingInitial || 0);
+    setActive(initial, 'init');
+
+    // Hover
+    stars.forEach(function (btn) {
+        btn.addEventListener('mouseenter', function () {
+            const hoverVal = Number(btn.dataset.value);
+            hideValidation();
+            setActive(hoverVal, 'hover');
+        });
+
+        btn.addEventListener('mouseleave', function () {
+            const current = Number(ratingInput?.value || 0);
+            setActive(current, 'leave');
+        });
+
+        // Click
+        btn.addEventListener('click', function () {
+            const clickVal = Number(btn.dataset.value);
+            hideValidation();
+            setActive(clickVal, 'click');
+        });
+    });
+
+    // Front-end validation on submit (jangan ubah backend)
+    const form = wrapper.closest('form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const current = Number(ratingInput?.value || 0);
+            if (!current) {
+                e.preventDefault();
+                if (validationEl) validationEl.style.display = 'block';
+            }
+        });
+    }
+})();
+</script>
 @endpush
+

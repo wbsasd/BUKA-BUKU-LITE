@@ -20,6 +20,13 @@ class BorrowController extends Controller
             'duration' => ['required', 'in:3,7,14,30'],
         ]);
 
+        // Booking hanya membuat record borrowing (pending), tapi wajib validasi stok dulu.
+        // Jika stok habis, proses dibatalkan dan stok tidak pernah diubah.
+        if ((int) $book->stock <= 0) {
+            return redirect()->back()->with('error', 'Buku sedang tidak tersedia.');
+        }
+
+
         $prices = [
             3 => 10000,
             7 => 20000,
@@ -60,10 +67,9 @@ class BorrowController extends Controller
         $extendingBorrowingId = session('extending_borrowing_id');
 
         if ($extendingBorrowingId) {
-            // This is an extension payment
+            // Extension payment: tidak mengubah stok karena buku yang sama sudah dipinjam.
             $originalBorrowing = Borrowing::findOrFail($extendingBorrowingId);
 
-            // Update the extension record
             $borrowing->payment_method = $data['payment_method'];
             $borrowing->status = 'paid';
             $borrowing->borrowed_at = now();
@@ -72,33 +78,58 @@ class BorrowController extends Controller
             $borrowing->return_date = $borrowing->due_date;
             $borrowing->save();
 
-            // Update the original borrowing
             $originalBorrowing->due_date = $borrowing->due_date;
             $originalBorrowing->duration = $originalBorrowing->duration + $borrowing->duration;
             $originalBorrowing->warning_sent = false;
             $originalBorrowing->warning_sent_at = null;
             $originalBorrowing->save();
 
-            // Clear session
             session()->forget('extending_borrowing_id');
-
-            // Delete the extension record (we'll just keep it for record, actually let's keep it)
-            // Or we can use it for tracking purposes
 
             return redirect()->route('borrow.finish', $borrowing);
         }
 
-        // Normal payment (new borrowing)
-        $borrowing->payment_method = $data['payment_method'];
-        $borrowing->status = 'paid';
-        $borrowing->borrowed_at = now();
-        $borrowing->due_date = now()->addDays($borrowing->duration);
-        $borrowing->borrow_date = $borrowing->borrowed_at;
-        $borrowing->return_date = $borrowing->due_date;
-        $borrowing->save();
+        // Normal payment (new borrowing): satu-satunya proses pengurangan stok.
+        \DB::transaction(function () use ($borrowing, $data) {
+            // Ambil kembali borrowing beserta relasi untuk memastikan konsistensi
+            $borrowing->refresh();
+
+            // Pastikan tidak terjadi double payment.
+            if ($borrowing->status !== 'pending') {
+                return;
+            }
+
+            // Lock buku agar aman dari race condition
+            $book = Book::query()
+                ->where('id', $borrowing->book_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ((int) $book->stock <= 0) {
+                // Throw untuk memastikan rollback
+                throw new \Illuminate\Database\Eloquent\ModelNotFoundException('Buku sedang tidak tersedia.');
+            }
+
+            // Kurangi stok tepat 1 kali
+            $book->stock = (int) $book->stock - 1;
+            if ($book->stock < 0) {
+                throw new \RuntimeException('Stock tidak boleh negatif');
+            }
+            $book->save();
+
+            // Update borrowing seperti flow yang sudah ada
+            $borrowing->payment_method = $data['payment_method'];
+            $borrowing->status = 'paid';
+            $borrowing->borrowed_at = now();
+            $borrowing->due_date = now()->addDays($borrowing->duration);
+            $borrowing->borrow_date = $borrowing->borrowed_at;
+            $borrowing->return_date = $borrowing->due_date;
+            $borrowing->save();
+        });
 
         return redirect()->route('borrow.finish', $borrowing);
     }
+
 
     public function finish(Borrowing $borrowing)
     {
@@ -122,23 +153,42 @@ class BorrowController extends Controller
         // Validate ownership
         abort_if($borrowing->user_id !== Auth::id(), 403);
 
-        // Validate status is paid
-        if ($borrowing->status !== 'paid') {
+        \DB::transaction(function () use ($borrowing) {
+            $borrowing->refresh();
+
+            // Validate status is paid and not already returned
+            if ($borrowing->status !== 'paid') {
+                return;
+            }
+
+            // Lock buku agar aman dari race condition dan pastikan stok konsisten
+            $book = Book::query()
+                ->where('id', $borrowing->book_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // Set status returned
+            $borrowing->status = 'returned';
+            $borrowing->returned_at = now();
+            $borrowing->save();
+
+            // Tambah stok 1 kali
+            $book->stock = (int) $book->stock + 1;
+            $book->save();
+        });
+
+        // Pastikan pesan sesuai kondisi (cek lagi setelah transaksi)
+        $borrowing->refresh();
+
+        if ($borrowing->status !== 'returned') {
             return redirect()->route('borrow.history')
                 ->with('error', 'Buku sudah dikembalikan atau status tidak valid');
         }
 
-        // Update borrowing
-        $borrowing->status = 'returned';
-        $borrowing->returned_at = now();
-        $borrowing->save();
-
-        // Increase book stock
-        $borrowing->book->increment('stock');
-
         return redirect()->route('borrow.history')
             ->with('success', 'Buku berhasil dikembalikan');
     }
+
 
     public function extendBook(Request $request, Borrowing $borrowing)
     {
