@@ -23,6 +23,8 @@ class MembershipUpgrade extends Model
         'rejected_at',
     ];
 
+
+
     protected $casts = [
         'requested_at' => 'datetime',
         'approved_at' => 'datetime',

@@ -213,31 +213,70 @@
             {{-- Membership Card --}}
             <div class="mb-3">
               @php
-                $roleName = strtolower((Auth::user()->role ?? 'user'));
-                $isPremium = in_array($roleName, ['premium','anggota premium','premium member']);
+                $role = Auth::user()->role;
               @endphp
 
-              @if($isPremium)
-                <x-membership-card role="👑 Premium Member" name="{{ Auth::user()->name ?? 'User' }}" expires="31 Des 2026">
-                  <div class="mt-3">
-                    <div class="progress" style="height:8px; border-radius:999px; background:#eef2ff;">
-                      <div class="progress-bar bg-warning" role="progressbar" style="width:65%; border-radius:999px;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted mt-2">
-                      <span>Progress</span>
-                      <span>~ 65% sisa</span>
-                    </div>
-                    <div class="mt-3 d-grid">
-                      <a href="#" class="btn btn-sm btn-primary" style="border-radius:12px;">Kelola Membership</a>
-                    </div>
-                  </div>
-                </x-membership-card>
-              @else
+              @if($role === 'pengguna')
                 <x-membership-card role="Basic Member" name="{{ Auth::user()->name ?? 'User' }}">
                   <div class="mt-3 d-grid">
                     <a href="#" class="btn btn-sm btn-outline-primary" style="border-radius:12px;">Upgrade Sekarang</a>
                   </div>
                 </x-membership-card>
+              @else
+                @if($role === 'premium')
+                  @php
+                    $membership = \App\Models\MembershipUpgrade::query()
+                      ->where('user_id', Auth::id())
+                      ->where('status', 'approved')
+                      ->orderByDesc('approved_at')
+                      ->first();
+
+                    $statusMembership = '—';
+                    $startLabel = '-';
+                    $endLabel = '-';
+                    $remainingLabel = '-';
+
+                    if ($membership && $membership->end_date) {
+                      $startLabel = $membership->start_date ? \Illuminate\Support\Carbon::parse($membership->start_date)->format('d M Y') : '-';
+                      $end = \Illuminate\Support\Carbon::parse($membership->end_date)->startOfDay();
+                      $endLabel = $end->format('d M Y');
+
+                      if ($end->lt(now()->startOfDay())) {
+                        $statusMembership = 'Expired';
+                        // Remaining dihitung tetap = end_date - today (negatif diperbolehkan)
+                        $remainingLabel = $end->diffInDays(now()->startOfDay(), false);
+                      } else {
+                        $statusMembership = 'Active';
+                        $remainingLabel = $end->diffInDays(now()->startOfDay(), false);
+                      }
+                    }
+
+                  @endphp
+
+                  <x-membership-card role="👑 Premium Member" name="{{ Auth::user()->name ?? 'User' }}">
+                    <div class="mt-3 text-start">
+                      <div class="small text-muted">Status Membership</div>
+                      <div class="fw-semibold">{{ $statusMembership }}</div>
+
+                      <div class="mt-2 small text-muted">Aktif sejak</div>
+                      <div class="fw-semibold">{{ $startLabel }}</div>
+
+                      <div class="mt-2 small text-muted">Berlaku sampai</div>
+                      <div class="fw-semibold">{{ $endLabel }}</div>
+
+                      <div class="mt-2 small text-muted">Sisa Hari Aktif</div>
+                      <div class="fw-semibold">{{ $remainingLabel }} Hari</div>
+
+                      <div class="mt-3 d-grid">
+                        <a href="#" class="btn btn-sm btn-primary" style="border-radius:12px;">Kelola Membership</a>
+                      </div>
+                    </div>
+                  </x-membership-card>
+
+                @else
+                  {{-- Untuk role selain 'pengguna'/'premium' (mis. admin), jangan tampilkan promo upgrade. --}}
+                  <x-membership-card role="Member" name="{{ Auth::user()->name ?? 'User' }}" />
+                @endif
               @endif
             </div>
 

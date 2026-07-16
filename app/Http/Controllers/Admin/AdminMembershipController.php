@@ -11,10 +11,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
+
 class AdminMembershipController extends Controller
 {
     private const STATUS_PENDING = 'pending';
-    private const STATUS_ACTIVE = 'active';
+    // membership_upgrades.status: pending / approved / rejected / expired
+    private const STATUS_APPROVED = 'approved';
     private const STATUS_REJECTED = 'rejected';
 
     private function isColumnExists(string $table, string $column): bool
@@ -22,28 +24,17 @@ class AdminMembershipController extends Controller
         return DB::getSchemaBuilder()->hasColumn($table, $column);
     }
 
+
     private function computeExpiredQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        // Expired: users start/end columns if exist; otherwise fall back to membership_upgrades.
-        // Requirement card uses DB count.
-        return MembershipUpgrade::query()->where(function ($q) {
-            // If users table has end_date, we can compute expired based on join.
-            // But we can't assume columns exist.
-            if ($this->isColumnExists('users', 'end_date')) {
-                $q->whereHas('user', function ($uq) {
-                    $uq->whereNotNull('end_date')
-                        ->where('end_date', '<', Carbon::now()->toDateString());
-                })->where('status', self::STATUS_ACTIVE);
-                return;
-            }
-
-            // Fallback: if membership_upgrades has approved_at, treat expired as approved_at older than duration.
-            // We don't have duration_month field in schema; use months.
-            $q->where('status', self::STATUS_ACTIVE)
-                ->whereNotNull('approved_at')
-                ->whereRaw('DATE_ADD(approved_at, INTERVAL months MONTH) < ?', [Carbon::now()->toDateString()]);
-        });
+        // Expired: membership_upgrades.status=approved AND membership_upgrades.end_date < today.
+        return MembershipUpgrade::query()
+            ->where('status', self::STATUS_APPROVED)
+            ->whereNotNull('end_date')
+            ->whereDate('end_date', '<', Carbon::now()->toDateString());
     }
+
+
 
     public function index(Request $request): View
     {
@@ -78,9 +69,10 @@ class AdminMembershipController extends Controller
 
         // Stats cards: Pending/Approved/Rejected/Expired
         $pendingCount = MembershipUpgrade::query()->where('status', self::STATUS_PENDING)->count();
-        $approvedCount = MembershipUpgrade::query()->where('status', self::STATUS_ACTIVE)->count();
+        $approvedCount = MembershipUpgrade::query()->where('status', self::STATUS_APPROVED)->count();
         $rejectedCount = MembershipUpgrade::query()->where('status', self::STATUS_REJECTED)->count();
         $expiredCount = $this->computeExpiredQuery()->count();
+
 
         return view('admin.memberships.index', [
             'memberships' => $memberships,
@@ -107,50 +99,61 @@ class AdminMembershipController extends Controller
 
     public function approve(Request $request, MembershipUpgrade $membership): RedirectResponse
     {
-        $membership->status = self::STATUS_ACTIVE;
+        // Approved workflow
+        // - membership_upgrades.status = approved
+        // - membership_upgrades.approved_at = now()
+        // - membership_upgrades.start_date = Carbon::today()
+        // - membership_upgrades.end_date = Carbon::today()->addMonthsNoOverflow(duration_bulan)
+        // - users.role=premium
+        // - users.membership_status=active
+
+        $approvedAt = now();
+        $startDate = Carbon::today();
+        $endDate = Carbon::today()->addMonthsNoOverflow((int) $membership->months);
+
+        $membership->status = self::STATUS_APPROVED;
         $membership->payment_status = 'paid';
-        $membership->approved_at = now();
+        $membership->approved_at = $approvedAt;
         $membership->rejected_at = null;
+        $membership->start_date = $startDate;
+        $membership->end_date = $endDate;
         $membership->save();
 
         $user = $membership->user()->firstOrFail();
-
-        // Update users
         $user->role = 'premium';
-        $user->membership_status = self::STATUS_ACTIVE;
-
-        $startDate = now()->toDateString();
-        if ($this->isColumnExists('users', 'start_date')) {
-            $user->start_date = $startDate;
-        }
-
-        if ($this->isColumnExists('users', 'end_date')) {
-            // months -> duration_month
-            $end = Carbon::parse($startDate)->addMonthsNoOverflow((int) $membership->months)->toDateString();
-            $user->end_date = $end;
-        }
-
+        $user->membership_status = 'active';
         $user->save();
 
         return redirect()->route('admin.memberships.index')->with('success', 'Membership berhasil di-approve.');
     }
 
+
+
     public function reject(Request $request, MembershipUpgrade $membership): RedirectResponse
     {
+        // Reject workflow
+        // - membership_upgrades.status = rejected
+        // - membership_upgrades.rejected_at = now()
+        // - membership_upgrades.start_date/end_date = null
+        // - users.role=pengguna
+        // - users.membership_status=rejected
+
         $membership->status = self::STATUS_REJECTED;
         $membership->payment_status = $membership->payment_status ?? 'unpaid';
         $membership->rejected_at = now();
         $membership->approved_at = null;
+        $membership->start_date = null;
+        $membership->end_date = null;
         $membership->save();
 
         $user = $membership->user()->firstOrFail();
         $user->role = 'pengguna';
         $user->membership_status = self::STATUS_REJECTED;
-
-        // If users has end_date/start_date, we can leave untouched to avoid breaking existing behavior.
         $user->save();
 
         return redirect()->route('admin.memberships.index')->with('success', 'Membership berhasil di-reject.');
     }
+
+
 }
 

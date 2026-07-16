@@ -21,10 +21,15 @@ return new class extends Migration
             $table->string('payment_method')->nullable();
 
             // Admin workflow
-            $table->string('status')->default('pending'); // pending/approved/rejected
+            $table->string('status')->default('pending'); // pending/approved/rejected/expired (expired derived)
             $table->timestamp('requested_at')->useCurrent();
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
+
+            // Derived membership period (based on admin approve time)
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+
 
             $table->timestamps();
 

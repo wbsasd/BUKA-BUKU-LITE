@@ -25,6 +25,8 @@
         <select name="role" class="form-select @error('role') is-invalid @enderror">
           <option value="admin" @selected(old('role') === 'admin')>admin</option>
           <option value="pengguna" @selected(old('role') === 'pengguna')>pengguna</option>
+          <option value="premium" @selected(old('role') === 'premium')>premium</option>
+
         </select>
         @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
       </div>

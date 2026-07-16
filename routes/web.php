@@ -124,10 +124,23 @@ Route::middleware(['auth'])->group(function () {
         ->name('membership.upgrade.finish');
 });
 
+// Book reviews (rating & ulasan)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/books/{book}/reviews', [\App\Http\Controllers\User\ReviewController::class, 'store'])
+        ->name('book.reviews.store');
+
+    Route::put('/book-reviews/{review}', [\App\Http\Controllers\User\ReviewController::class, 'update'])
+        ->name('book.reviews.update');
+
+    Route::delete('/book-reviews/{review}', [\App\Http\Controllers\User\ReviewController::class, 'destroy'])
+        ->name('book.reviews.destroy');
+});
+
 // Borrowing user flow
 Route::middleware(['auth', 'membership.active'])->group(function () {
     Route::get('/book/{book}/booking', [\App\Http\Controllers\BorrowController::class, 'booking'])->name('borrow.booking');
     Route::post('/book/{book}/booking', [\App\Http\Controllers\BorrowController::class, 'storeBooking'])->name('borrow.store');
+
 
     Route::get('/borrow/{borrowing}/payment', [\App\Http\Controllers\BorrowController::class, 'payment'])->name('borrow.payment');
     Route::post('/borrow/{borrowing}/pay', [\App\Http\Controllers\BorrowController::class, 'pay'])->name('borrow.pay');
