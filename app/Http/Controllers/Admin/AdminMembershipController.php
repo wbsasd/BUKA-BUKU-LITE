@@ -119,10 +119,11 @@ class AdminMembershipController extends Controller
         $membership->end_date = $endDate;
         $membership->save();
 
-        $user = $membership->user()->firstOrFail();
-        $user->role = 'premium';
-        $user->membership_status = 'active';
-        $user->save();
+        // IMPORTANT: Single Source of Truth untuk role/premium hanya melalui admin approve flow:
+        //   POST admin/membership-requests/{user}/approve (MembershipApprovalController@approve)
+        // Controller ini dibiarkan hanya mengelola membership_upgrades records.
+        // Jadi tidak mengubah users.role / users.membership_status di sini.
+        // (no-op)
 
         return redirect()->route('admin.memberships.index')->with('success', 'Membership berhasil di-approve.');
     }

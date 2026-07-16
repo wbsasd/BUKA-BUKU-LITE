@@ -46,10 +46,10 @@
                     <span>Books</span>
                 </a>
 
-                <a class="bb-nav-link disabled" href="#" tabindex="-1" aria-disabled="true">
+                <!-- <a class="bb-nav-link disabled" href="#" tabindex="-1" aria-disabled="true">
                     <span class="bb-icon">🗂</span>
                     <span>Categories</span>
-                </a>
+                </a> -->
 
                 <a class="bb-nav-link {{ request()->routeIs('admin.borrowings.*') ? 'bb-active' : '' }}" href="{{ route('admin.borrowings.index') }}">
                     <span class="bb-icon">📖</span>
@@ -66,20 +66,20 @@
                     <span>Permintaan Registrasi</span>
                 </a>
 
-                <a class="bb-nav-link {{ request()->routeIs('admin.reports.*') ? 'bb-active' : '' }}" href="{{ route('admin.reports.index') }}">
+                <!-- <a class="bb-nav-link {{ request()->routeIs('admin.reports.*') ? 'bb-active' : '' }}" href="{{ route('admin.reports.index') }}">
                     <span class="bb-icon">📈</span>
                     <span>Reports</span>
-                </a>
+                </a> -->
 
                 <a class="bb-nav-link {{ request()->routeIs('admin.users.*') ? 'bb-active' : '' }}" href="{{ route('admin.users.index') }}">
                     <span class="bb-icon">👥</span>
                     <span>Users</span>
                 </a>
 
-                <a class="bb-nav-link disabled" href="#" tabindex="-1" aria-disabled="true">
+                <!-- <a class="bb-nav-link disabled" href="#" tabindex="-1" aria-disabled="true">
                     <span class="bb-icon">⚙</span>
                     <span>Settings</span>
-                </a>
+                </a> -->
             </x-sidebar>
         </aside>
 
@@ -102,14 +102,14 @@
                         </div>
                     </div>
 
-                    <div class="bb-search d-none d-lg-block">
+                    <!-- <div class="bb-search d-none d-lg-block">
                         <div class="input-group">
                             <span class="input-group-text bg-white" style="border-radius:14px 0 0 14px; border-right:0;">
                                 <i class="bi bi-search"></i>
                             </span>
                             <input type="text" class="form-control" placeholder="Search... (dummy)" aria-label="Search" style="border-radius:0 14px 14px 0; border-left:0;">
                         </div>
-                    </div>
+                    </div> -->
 
                     <div class="d-flex align-items-center gap-2">
                         <!-- Notifications (dummy) -->

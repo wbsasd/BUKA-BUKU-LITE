@@ -65,6 +65,10 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+
+            // Single source of truth for membership flow:
+            // default new accounts must be pending pengguna.
+            'role' => 'pengguna',
             'membership_status' => 'pending',
         ]);
     }
