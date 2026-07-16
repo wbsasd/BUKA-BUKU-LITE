@@ -287,3 +287,40 @@ body.bg-light{background:linear-gradient(180deg,#f8fbff 0%, #f3f7ff 100%) !impor
   .bb-hover-lift, .bb-anim-fadein{transition:none; animation:none;}
 }
 
+/* ================================
+   Admin Modal z-index standard (Bootstrap 5)
+   Goal: modal & backdrop always on top of dashboard.
+   ================================ */
+:root{
+  --bb-modal-zindex: 1060;
+  --bb-modal-backdrop-zindex: 1055;
+}
+
+/* Bootstrap 5 backdrop */
+.modal-backdrop{
+  z-index: var(--bb-modal-backdrop-zindex) !important;
+}
+
+/* Bootstrap 5 modal */
+.modal{
+  z-index: var(--bb-modal-zindex) !important;
+}
+
+/* Ensure dialog/content never fall behind */
+.modal-dialog{
+  z-index: calc(var(--bb-modal-zindex) + 1) !important;
+}
+.modal-content{
+  z-index: calc(var(--bb-modal-zindex) + 2) !important;
+}
+
+/* Safety: avoid stacking context issues for common admin wrappers */
+.bb-topbar,
+.bb-desktop-sidebar,
+.offcanvas,
+.dropdown-menu{
+  position: relative;
+  z-index: 1040;
+}
+
+
