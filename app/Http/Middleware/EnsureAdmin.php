@@ -21,9 +21,15 @@ class EnsureAdmin
         $user = Auth::user();
 
         if ($user->role !== 'admin') {
-            abort(403);
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Unauthorized for admin area.']);
         }
 
         return $next($request);
     }
 }
+

@@ -4,7 +4,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])->name('home');
 
-Route::middleware(['auth', 'membership.active'])->get('/dashboard', [\App\Http\Controllers\User\DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'membership.active'])->get('/dashboard', function () {
+    abort_if(auth()->user()?->role === 'admin', 403, 'Akun Administrator harus login melalui halaman Admin.');
+    return app(\App\Http\Controllers\User\DashboardController::class)->index(request());
+})->name('dashboard');
+
 
 // Pinjam buku (mulai baca/reader). Guest dialihkan ke Register oleh middleware.
 Route::middleware(['auth', 'membership.active'])->get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
@@ -111,8 +115,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/membership/upgrade', [\App\Http\Controllers\MembershipUpgradeController::class, 'plans'])
         ->name('membership.upgrade.plans');
 
+    // Dashboard borrowings count (for realtime card)
+    Route::get('/dashboard/borrowings/count', \App\Http\Controllers\User\DashboardBorrowingCountController::class)
+        ->name('dashboard.borrowings.count');
+
+    // Dashboard realtime stats (membership + denda + books read)
+    Route::get('/dashboard/stats/realtime', \App\Http\Controllers\User\DashboardStatsRealtimeController::class)
+        ->name('dashboard.stats.realtime');
+
     Route::post('/membership/upgrade/review', [\App\Http\Controllers\MembershipUpgradeController::class, 'review'])
         ->name('membership.upgrade.review');
+
+
 
     Route::get('/membership/upgrade/{upgrade}/payment', [\App\Http\Controllers\MembershipUpgradeController::class, 'payment'])
         ->name('membership.upgrade.payment');

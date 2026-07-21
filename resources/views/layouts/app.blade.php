@@ -7,7 +7,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'BUKA BUKU') }}</title>
+    <title>{{ config('app.name', 'BUKA BUKU LITE') }}</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -50,7 +50,7 @@
 
         {{-- content --}}
         <div class="d-flex justify-content-center">
-            <div class="container-fluid" style="max-width:1300px;width:100%;padding:24px; padding-top:96px;">
+            <div class="container-fluid" style="max-width:1450px;width:100%;padding:24px; padding-top:96px;">
                 <main style="width:100%;">
                     @yield('content')
                 </main>

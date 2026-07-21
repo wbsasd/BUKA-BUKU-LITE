@@ -1,4 +1,4 @@
-@props(['brand' => config('app.name', 'Buka Buku')])
+@props(['brand' => 'BUKA BUKU'])
 
 <nav class="navbar navbar-expand-lg bb-navbar fixed-top bg-white border-bottom">
     <div class="container-fluid">

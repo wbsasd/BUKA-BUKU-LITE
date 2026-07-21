@@ -41,10 +41,20 @@ class LoginController extends Controller
                 }
             }
 
+            if (($user?->role ?? null) === 'admin') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('admin.login')
+                    ->withErrors(['email' => 'Akun Administrator harus login melalui halaman Admin.']);
+            }
+
             return true;
         }
 
         Log::warning('Login Failed');
+
 
         return false;
     }

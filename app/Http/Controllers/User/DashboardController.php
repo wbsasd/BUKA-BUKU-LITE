@@ -24,10 +24,16 @@ class DashboardController extends Controller
 
         $categories = Category::orderBy('name')->get();
 
+        $borrowingCount = \App\Models\Borrowing::query()
+            ->where('user_id', auth()->id())
+            ->where('status', '!=', 'returned')
+            ->count();
+
         return view('dashboard', [
             'latestBooks' => $latestBooks,
             'recommendedBooks' => $recommendedBooks,
             'categories' => $categories,
+            'borrowingCount' => $borrowingCount,
         ]);
     }
 }
