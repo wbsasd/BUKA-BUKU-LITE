@@ -254,6 +254,7 @@
     <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0">
+
                 <div class="modal-header bg-success bg-opacity-10 border-success border-opacity-25">
                     <h5 class="modal-title fw-bold text-success">
                         <i class="fas fa-check me-2"></i>Konfirmasi Approve

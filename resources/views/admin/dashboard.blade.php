@@ -127,8 +127,7 @@
               </thead>
               <tbody>
 
-
-@forelse($recentBorrowings as $rb)
+                @forelse($recentBorrowings as $rb)
                   @php
                     $isOverdue = ($rb->status ?? '') !== 'returned' && isset($rb->due_date) && now() > $rb->due_date;
                     $statusBadge = ($rb->status ?? '') === 'returned' ? 'badge-dikembalikan' : ($isOverdue ? 'badge-terlambat' : 'badge-dipinjam');
@@ -156,6 +155,7 @@
                     </td>
                   </tr>
                 @endforelse
+
               </tbody>
             </table>
           </div>
@@ -252,161 +252,13 @@
       </div>
     </div>
 
-    <!-- Membership Detail Modal -->
-    <div class="modal fade" id="membershipDetailModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0">
-          <div class="modal-header border-0" style="background: rgba(0,123,255,.08);">
-            <h5 class="modal-title fw-bold">
-              <i class="bi bi-info-circle me-2"></i>Detail Membership Request
-            </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-
-          <div class="modal-body">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="text-muted small">Nama User</div>
-                <div class="fw-semibold" id="mdUserName">-</div>
-              </div>
-              <div class="col-md-6">
-                <div class="text-muted small">Email</div>
-                <div class="fw-semibold" id="mdUserEmail">-</div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="text-muted small">Paket Membership</div>
-                <div class="fw-semibold" id="mdPlan">-</div>
-              </div>
-              <div class="col-md-6">
-                <div class="text-muted small">Durasi</div>
-                <div class="fw-semibold" id="mdDuration">-</div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="text-muted small">Harga</div>
-                <div class="fw-semibold" id="mdPrice">-</div>
-              </div>
-              <div class="col-md-6">
-                <div class="text-muted small">Metode Pembayaran</div>
-                <div class="fw-semibold" id="mdPaymentMethod">-</div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="text-muted small">Status Pembayaran</div>
-                <div class="fw-semibold" id="mdPaymentStatus">-</div>
-              </div>
-              <div class="col-md-6">
-                <div class="text-muted small">Status Membership</div>
-                <div class="fw-semibold" id="mdMembershipStatus">-</div>
-              </div>
-
-              <div class="col-12">
-                <div class="text-muted small">Tanggal Request</div>
-                <div class="fw-semibold" id="mdRequestedAt">-</div>
-              </div>
-
-              <div class="col-12 mt-2">
-                <div class="text-muted small mb-1">Bukti Pembayaran</div>
-                <div id="mdPaymentProofBox" class="small text-muted">Belum upload bukti pembayaran.</div>
-                <div id="mdPaymentProofPreview" class="mt-2" style="display:none;">
-                  <img id="mdPaymentProofImg" alt="Bukti Pembayaran" style="max-width:100%;border-radius:10px;" />
-                  <div class="mt-2">
-                    <a id="mdPaymentProofLink" class="btn btn-sm btn-bb-outline" href="#" target="_blank" rel="noopener">Lihat File</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-bb-outline" data-bs-dismiss="modal">Tutup</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    @push('scripts')
-      <script>
-        (function(){
-          const modalEl = document.getElementById('membershipDetailModal');
-          if(!modalEl) return;
-
-          // Use Bootstrap's official API (single instance)
-          const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
-            backdrop: true,
-            keyboard: true
-          });
-
-          modalEl.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            if(!button) return;
-
-            const get = (id, attr) => {
-              const el = document.getElementById(id);
-              if(el) el.textContent = button.getAttribute(attr) || '-';
-            };
-
-            get('mdUserName', 'data-user-name');
-            get('mdUserEmail', 'data-user-email');
-            get('mdPlan', 'data-plan');
-            get('mdDuration', 'data-duration');
-            get('mdPrice', 'data-price');
-            get('mdPaymentMethod', 'data-payment-method');
-            get('mdPaymentStatus', 'data-payment-status');
-            get('mdMembershipStatus', 'data-membership-status');
-            get('mdRequestedAt', 'data-requested-at');
-
-            const proof = button.getAttribute('data-payment-proof') || '';
-            const box = document.getElementById('mdPaymentProofBox');
-            const preview = document.getElementById('mdPaymentProofPreview');
-            const img = document.getElementById('mdPaymentProofImg');
-            const link = document.getElementById('mdPaymentProofLink');
-
-            if (!proof || proof.trim() === '') {
-              if(box) box.textContent = 'Belum upload bukti pembayaran.';
-              if(preview) preview.style.display = 'none';
-              if(img) img.removeAttribute('src');
-              if(link) link.href = '#';
-              return;
-            }
-
-            if(box) box.textContent = '';
-            if(preview) preview.style.display = 'block';
-
-            if(img) img.src = proof;
-            if(link) link.href = proof;
-          });
-
-          // Cleanup to prevent stuck-backdrop / unclickable page
-          modalEl.addEventListener('hidden.bs.modal', function () {
-            // Backdrop cleanup
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-
-            // Body cleanup
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-
-            // Ensure Bootstrap internal state is reset by re-instantiating (no UI change)
-            try {
-              bootstrap.Modal.getInstance(modalEl)?.dispose();
-              bootstrap.Modal.getOrCreateInstance(modalEl);
-            } catch (e) {
-              // no-op
-            }
-          });
-        })();
-      </script>
-    @endpush
-
 
 
     <div class="col-lg-8">
       <div class="row g-3">
         <!-- Statistic Chart -->
         <div class="col-12 col-lg-7">
-<div class="bb-card-soft bb-hover-lift p-4">
+          <div class="bb-card-soft bb-hover-lift p-4">
             <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
               <div>
                 <div class="bb-admin-title">Statistic Chart</div>
@@ -449,75 +301,216 @@
         <div class="bb-admin-title mb-2">Recent Activity</div>
         <div class="bb-admin-subtitle small mb-3">Timeline contoh (dummy)</div>
         <div class="bb-timeline">
-          <div class="bb-timeline-item">
-            <div class="bb-timeline-dot"></div>
-            <div>
-              <div class="fw-bold">✔ User meminjam buku</div>
-              <div class="small text-muted">2 menit lalu</div>
+
+          @forelse(($recentActivities ?? []) as $act)
+            <div class="bb-timeline-item">
+              <div class="bb-timeline-dot"></div>
+              <div>
+                <div class="fw-bold">
+                  @if(!empty($act['icon']))
+                    <i class="{{ $act['icon'] }} me-2"></i>
+                  @endif
+                  {{ $act['title'] ?? '-' }}
+                </div>
+                <div class="small text-muted">
+                  {{ \Carbon\Carbon::parse($act['created_at'])->diffForHumans() }}
+                </div>
+                @if(!empty($act['description']))
+                  <div class="small text-muted">{{ $act['description'] }}</div>
+                @endif
+              </div>
             </div>
-          </div>
-          <div class="bb-timeline-item">
-            <div class="bb-timeline-dot"></div>
-            <div>
-              <div class="fw-bold">✔ Membership disetujui</div>
-              <div class="small text-muted">1 jam lalu</div>
-            </div>
-          </div>
-          <div class="bb-timeline-item">
-            <div class="bb-timeline-dot"></div>
-            <div>
-              <div class="fw-bold">✔ Buku dikembalikan</div>
-              <div class="small text-muted">Kemarin</div>
-            </div>
-          </div>
-          <div class="bb-timeline-item">
-            <div class="bb-timeline-dot"></div>
-            <div>
-              <div class="fw-bold">✔ User baru registrasi</div>
-              <div class="small text-muted">2 hari lalu</div>
-            </div>
-          </div>
+          @empty
+            <div class="small text-muted py-2">Tidak ada aktivitas terbaru.</div>
+          @endforelse
+
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Chart.js + dummy data -->
+  
+  <!-- Membership Detail Modal (top-level render for correct stacking/pointer events) -->
+  <div class="modal fade" id="membershipDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0">
+        <div class="modal-header border-0" style="background: rgba(0,123,255,.08);">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-info-circle me-2"></i>Detail Membership Request
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="text-muted small">Nama User</div>
+              <div class="fw-semibold" id="mdUserName">-</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted small">Email</div>
+              <div class="fw-semibold" id="mdUserEmail">-</div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="text-muted small">Paket Membership</div>
+              <div class="fw-semibold" id="mdPlan">-</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted small">Durasi</div>
+              <div class="fw-semibold" id="mdDuration">-</div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="text-muted small">Harga</div>
+              <div class="fw-semibold" id="mdPrice">-</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted small">Metode Pembayaran</div>
+              <div class="fw-semibold" id="mdPaymentMethod">-</div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="text-muted small">Status Pembayaran</div>
+              <div class="fw-semibold" id="mdPaymentStatus">-</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted small">Status Membership</div>
+              <div class="fw-semibold" id="mdMembershipStatus">-</div>
+            </div>
+            <div class="col-12">
+              <div class="text-muted small">Tanggal Request</div>
+              <div class="fw-semibold" id="mdRequestedAt">-</div>
+            </div>
+
+            <div class="col-12 mt-2">
+              <div class="text-muted small mb-1">Bukti Pembayaran</div>
+              <div id="mdPaymentProofBox" class="small text-muted">Belum upload bukti pembayaran.</div>
+              <div id="mdPaymentProofPreview" class="mt-2" style="display:none;">
+                <img id="mdPaymentProofImg" alt="Bukti Pembayaran" style="max-width:100%;border-radius:10px;" />
+                <div class="mt-2">
+                  <a id="mdPaymentProofLink" class="btn btn-sm btn-bb-outline" href="#" target="_blank" rel="noopener">Lihat File</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-bb-outline" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  (function(){
-    const ctx = document.getElementById('bbBorrowingChart');
-    if(!ctx) return;
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan','Feb','Mar','Apr','Mei','Jun'],
-        datasets: [{
-          label: 'Borrowings',
-          data: [3, 8, 5, 10, 7, 12],
-          tension: 0.35,
-          borderColor: '#1b4fff',
-          backgroundColor: 'rgba(27,79,255,.12)',
-          fill: true,
-          pointRadius: 3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { precision: 0 } }
+  <script>
+    (function(){
+      const modalEl = document.getElementById('membershipDetailModal');
+      if(!modalEl) return;
+
+      // Use Bootstrap's official API (single instance)
+      const modal = bootstrap.Modal.getOrCreateInstance(modalEl, {
+        backdrop: true,
+        keyboard: true
+      });
+
+      modalEl.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        if(!button) return;
+
+        const get = (id, attr) => {
+          const el = document.getElementById(id);
+          if(el) el.textContent = button.getAttribute(attr) || '-';
+        };
+
+        get('mdUserName', 'data-user-name');
+        get('mdUserEmail', 'data-user-email');
+        get('mdPlan', 'data-plan');
+        get('mdDuration', 'data-duration');
+        get('mdPrice', 'data-price');
+        get('mdPaymentMethod', 'data-payment-method');
+        get('mdPaymentStatus', 'data-payment-status');
+        get('mdMembershipStatus', 'data-membership-status');
+        get('mdRequestedAt', 'data-requested-at');
+
+        const proof = button.getAttribute('data-payment-proof') || '';
+        const box = document.getElementById('mdPaymentProofBox');
+        const preview = document.getElementById('mdPaymentProofPreview');
+        const img = document.getElementById('mdPaymentProofImg');
+        const link = document.getElementById('mdPaymentProofLink');
+
+        if (!proof || proof.trim() === '') {
+          if(box) box.textContent = 'Belum upload bukti pembayaran.';
+          if(preview) preview.style.display = 'none';
+          if(img) img.removeAttribute('src');
+          if(link) link.href = '#';
+          return;
         }
-      }
-    });
-  })();
-</script>
+
+        if(box) box.textContent = '';
+        if(preview) preview.style.display = 'block';
+
+        if(img) img.src = proof;
+        if(link) link.href = proof;
+      });
+
+      // Cleanup to prevent stuck-backdrop / unclickable page
+      modalEl.addEventListener('hidden.bs.modal', function () {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+
+        // Ensure Bootstrap internal state reset safely
+        try {
+          const inst = bootstrap.Modal.getInstance(modalEl);
+          inst?.dispose?.();
+        } catch (e) {
+          // no-op
+        }
+      });
+    })();
+  </script>
+
+  <!-- Chart.js + dynamic data -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    (function(){
+      const ctx = document.getElementById('bbBorrowingChart');
+      if(!ctx) return;
+
+      const chartLabels = @json($chartLabels);
+      const chartValues = @json($chartValues);
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: 'Borrowings',
+            data: chartValues,
+            tension: 0.35,
+            borderColor: '#1b4fff',
+            backgroundColor: 'rgba(27,79,255,.12)',
+            fill: true,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+    })();
+  </script>
 @endpush
 @endsection
-
-
-
 
