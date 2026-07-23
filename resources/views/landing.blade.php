@@ -32,17 +32,17 @@
                   </x-button>
                 @else
                   @php
-                    $roleName = strtolower(Auth::user()->role ?? 'user');
+                    $hasPremiumAccess = Auth::user()?->hasPremiumAccess() ?? false;
                     // URL berdasarkan role (tanpa last read / reader fallback).
                     $basicUpgradeUrl = route('membership.upgrade.plans');
                     $continueUrl = route('dashboard');
                   @endphp
 
-                  @if($roleName === 'pengguna')
+                  @if(!$hasPremiumAccess)
                     <x-button variant="primary" class="bb-rounded-12 bb-hover-lift" onclick="window.location='{{ $basicUpgradeUrl }}'">
                       ⭐ Upgrade Sekarang
                     </x-button>
-                  @elseif($roleName === 'premium')
+                  @else
                     <x-button variant="primary" class="bb-rounded-12 bb-hover-lift" onclick="window.location='{{ $continueUrl }}'">
                       📖 Lanjut Membaca
                     </x-button>
@@ -104,7 +104,7 @@
               :bookId="$book->id"
               title="{{ $book->title }}"
               author="{{ $book->author }}"
-              cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+              cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.svg') }}"
               rating="4"
             >
               <div class="small text-muted">{{ $book->category?->name }}</div>
@@ -138,7 +138,7 @@
               :bookId="$book->id"
               title="{{ $book->title }}"
               author="{{ $book->author }}"
-              cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+              cover="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.svg') }}"
               rating="5"
             >
               <div class="small text-muted">{{ $book->category?->name }}</div>
@@ -168,7 +168,7 @@
       </div>
     </section>
   @else
-    @if(Auth::user()->role === 'pengguna')
+    @if(!(Auth::user()?->hasPremiumAccess() ?? false))
       <section class="py-4">
         <div class="card bg-primary text-white overflow-hidden">
           <div class="row g-0 align-items-center">
@@ -183,7 +183,7 @@
         </div>
       </section>
     @endif
-    {{-- Jika role premium: Membership Banner tidak dirender sama sekali (tidak ada HTML, bukan CSS/JS). --}}
+    {{-- Jika akses premium aktif: Membership Banner tidak dirender sama sekali (tidak ada HTML, bukan CSS/JS). --}}
   @endguest
 </div>
 @endsection

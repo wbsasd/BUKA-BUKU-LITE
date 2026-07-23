@@ -7,7 +7,7 @@
       <div class="card pdf-reader-wrapper">
         <div class="card-body">
           <div id="pdfViewer" class="pdf-viewer text-center mb-3">
-            @if(!empty($book->file_pdf) && Storage::disk('public')->exists($book->file_pdf))
+            @if(!empty($book->file_pdf) && ($documentAvailable ?? false))
               <div class="border rounded p-2 bg-light">
                 <div class="d-flex align-items-center justify-content-between mb-2 gap-2 flex-wrap">
                   <div class="d-flex gap-2">
@@ -40,10 +40,10 @@
         <div id="pdfOverlay" class="pdf-overlay d-none">
           <div class="card p-4 text-center">
             <h5 class="fw-semibold">Halaman Terkunci</h5>
-            <p>Anda perlu menjadi Anggota Premium untuk membaca lebih dari 5 halaman.</p>
+            <p>Anda perlu menjadi Anggota Premium untuk membaca lebih dari 10 halaman.</p>
             <div class="d-flex justify-content-center gap-2 mt-3">
               <button id="upgradeBtn" class="btn btn-warning">Upgrade Premium</button>
-              <button id="closeOverlayBtn" class="btn btn-light">Kembali ke Halaman 5</button>
+              <button id="closeOverlayBtn" class="btn btn-light">Kembali ke Halaman 10</button>
             </div>
           </div>
         </div>
@@ -82,11 +82,11 @@
                 <x-book-card
                   title="{{ $rel->title }}"
                   author="{{ $rel->author }}"
-                  cover="{{ $rel->cover_image ? asset('storage/covers/'.$rel->cover_image) : null }}"
+                  cover="{{ $rel->cover_image ? asset('storage/'.$rel->cover_image) : null }}"
                   rating="4"
                 >
                   <div class="mt-2 d-grid">
-                    <a href="#" class="btn btn-sm btn-outline-primary">Lihat</a>
+                    <a href="{{ route('book.detail', ['id' => $rel->id]) }}" class="btn btn-sm btn-outline-primary">Lihat</a>
                   </div>
                 </x-book-card>
               </div>
@@ -120,7 +120,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  const pdfUrl = @json(!empty($book->file_pdf) ? asset('storage/' . $book->file_pdf) : null);
+  const pdfUrl = @json(!empty($book->file_pdf) ? route('reader.document', ['id' => $book->id, 'token' => $readerToken ?? '']) : null);
   const overlay = document.getElementById('pdfOverlay');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
@@ -138,7 +138,8 @@ document.addEventListener('DOMContentLoaded', function(){
   let totalPages = 1;
   let currentScale = 1.25;
   let pdfDoc = null;
-  let isPremium = {{ auth()->user()?->role === 'premium' ? 'true' : 'false' }};
+  const trialLimit = {{ (int) ($trialLimit ?? 10) }};
+  let isPremium = {{ auth()->user()?->hasPremiumAccess() ? 'true' : 'false' }};
 
   if (!pdfUrl) {
     if (pdfStatusEl) {
@@ -147,7 +148,8 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
 
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  function bootPdfReader() {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
   function updateControls(){
     if (prevBtn) prevBtn.disabled = currentPage <= 1;
@@ -155,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if (zoomOutBtn) zoomOutBtn.disabled = currentScale <= 0.8;
     if (zoomInBtn) zoomInBtn.disabled = currentScale >= 2.5;
 
-    if (!isPremium && currentPage > 5) {
+    if (!isPremium && currentPage > trialLimit) {
       overlay.classList.remove('d-none');
     } else {
       overlay.classList.add('d-none');
@@ -196,6 +198,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
   if (nextBtn) {
     nextBtn.addEventListener('click', function(){
+      if (!isPremium && currentPage >= trialLimit) {
+        currentPage = trialLimit + 1;
+        updateControls();
+        return;
+      }
+
       if (currentPage < totalPages) {
         currentPage++;
         renderCurrentPage();
@@ -206,6 +214,12 @@ document.addEventListener('DOMContentLoaded', function(){
   if (pageNumberInput) {
     pageNumberInput.addEventListener('change', function(){
       const requestedPage = parseInt(pageNumberInput.value, 10);
+      if (!isPremium && requestedPage > trialLimit) {
+        currentPage = trialLimit + 1;
+        updateControls();
+        return;
+      }
+
       if (!Number.isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= totalPages) {
         currentPage = requestedPage;
         renderCurrentPage();
@@ -231,14 +245,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
   if (upgradeBtn) {
     upgradeBtn.addEventListener('click', function(){
-      isPremium = true;
-      updateControls();
+      const upgradeUrl = @json(auth()->check() ? route('membership.upgrade.plans') : route('membership.register'));
+      window.location.href = upgradeUrl;
     });
   }
 
   if (closeOverlayBtn) {
     closeOverlayBtn.addEventListener('click', function(){
-      currentPage = 5;
+      currentPage = trialLimit;
       renderCurrentPage();
     });
   }
@@ -262,6 +276,28 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
   updateControls();
+  }
+
+  if (typeof window.pdfjsLib === 'undefined') {
+    const fallbackScript = document.createElement('script');
+    fallbackScript.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js';
+    fallbackScript.onload = function() {
+      if (typeof window.pdfjsLib !== 'undefined') {
+        bootPdfReader();
+      } else if (pdfStatusEl) {
+        pdfStatusEl.textContent = 'PDF reader gagal dimuat.';
+      }
+    };
+    fallbackScript.onerror = function() {
+      if (pdfStatusEl) {
+        pdfStatusEl.textContent = 'PDF reader gagal dimuat.';
+      }
+    };
+    document.head.appendChild(fallbackScript);
+    return;
+  }
+
+  bootPdfReader();
 });
 </script>
 @endpush

@@ -64,3 +64,45 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Production Hardening Checklist (Shared Hosting Linux)
+
+### 1) APP_URL and storage URL
+
+- Set `APP_URL` to the full production URL (including `https://`), for example:
+	- `APP_URL=https://example.com`
+- This project renders uploaded files via `/storage/...`, so wrong `APP_URL` can break file URL generation.
+
+### 2) FILESYSTEM_DISK and upload consistency
+
+- Use `FILESYSTEM_DISK=public` in production.
+- Upload paths are stored as relative paths (example: `books/covers/...`, `books/pdf/...`).
+- Keep directory names lowercase to avoid case-sensitive path issues on Linux.
+
+### 3) Storage symbolic link
+
+- Create symlink from `public/storage` to `storage/app/public`:
+	- `php artisan storage:link`
+- Verify `public/storage` exists and points to `storage/app/public`.
+
+### 4) Folder permission compatibility
+
+- Ensure web server user can write to:
+	- `storage/`
+	- `bootstrap/cache/`
+- Common setup (adjust user/group for your host):
+	- `chmod -R ug+rwx storage bootstrap/cache`
+
+### 5) Config and route/view cache
+
+- After deploying env/config changes, run:
+	- `php artisan optimize:clear`
+	- `php artisan config:cache`
+	- `php artisan route:cache`
+	- `php artisan view:cache`
+
+### 6) Fail-safe file operations
+
+- Upload and file replacement/deletion are implemented with Laravel `Storage` facade.
+- Delete operations are safe when file is already missing and will not break request flow.
+- Lightweight logging is enabled for upload, replace, and delete file lifecycle.

@@ -105,7 +105,7 @@
                         <div class="d-flex align-items-center gap-4">
                           <div class="bb-cover-lg">
                             <img
-                              src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+                              src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.svg') }}"
                               alt="cover"
                             >
                           </div>
@@ -266,21 +266,21 @@
         {{-- Membership Card --}}
         <div class="mb-3">
           @php
-            $role = Auth::user()->role;
+            $currentUser = Auth::user();
+            $hasPremiumAccess = $currentUser?->hasPremiumAccess() ?? false;
           @endphp
 
-          @if($role === 'pengguna')
+          @if(!$hasPremiumAccess)
             <x-membership-card role="Basic Member" name="{{ Auth::user()->name ?? 'User' }}">
               <div class="mt-3 d-grid">
                 <a href="#" class="btn btn-sm btn-bb-outline" style="border-radius:12px;">Upgrade Sekarang</a>
               </div>
             </x-membership-card>
           @else
-            @if($role === 'premium')
               @php
                 $membership = \App\Models\MembershipUpgrade::query()
                   ->where('user_id', Auth::id())
-                  ->where('status', 'approved')
+                  ->whereIn('status', ['approved', 'active'])
                   ->orderByDesc('approved_at')
                   ->first();
 
@@ -323,10 +323,6 @@
                   </div>
                 </div>
               </x-membership-card>
-
-            @else
-              <x-membership-card role="Member" name="{{ Auth::user()->name ?? 'User' }}" />
-            @endif
           @endif
         </div>
 

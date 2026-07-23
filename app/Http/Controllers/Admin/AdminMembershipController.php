@@ -107,23 +107,39 @@ class AdminMembershipController extends Controller
         // - users.role=premium
         // - users.membership_status=active
 
-        $approvedAt = now();
-        $startDate = Carbon::today();
-        $endDate = Carbon::today()->addMonthsNoOverflow((int) $membership->months);
+        DB::transaction(function () use ($membership): void {
+            $lockedMembership = MembershipUpgrade::query()
+                ->whereKey($membership->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $membership->status = self::STATUS_APPROVED;
-        $membership->payment_status = 'paid';
-        $membership->approved_at = $approvedAt;
-        $membership->rejected_at = null;
-        $membership->start_date = $startDate;
-        $membership->end_date = $endDate;
-        $membership->save();
+            $approvedAt = now();
+            $startDate = Carbon::today();
+            $endDate = Carbon::today()->addMonthsNoOverflow((int) $lockedMembership->months);
 
-        // IMPORTANT: Single Source of Truth untuk role/premium hanya melalui admin approve flow:
-        //   POST admin/membership-requests/{user}/approve (MembershipApprovalController@approve)
-        // Controller ini dibiarkan hanya mengelola membership_upgrades records.
-        // Jadi tidak mengubah users.role / users.membership_status di sini.
-        // (no-op)
+            $lockedMembership->status = self::STATUS_APPROVED;
+            $lockedMembership->payment_status = 'paid';
+            $lockedMembership->approved_at = $approvedAt;
+            $lockedMembership->rejected_at = null;
+            $lockedMembership->start_date = $startDate;
+            $lockedMembership->end_date = $endDate;
+            $lockedMembership->save();
+
+            // Sinkronkan status user agar akses premium aktif setelah approve.
+            $user = User::query()->whereKey($lockedMembership->user_id)->lockForUpdate()->firstOrFail();
+            $user->role = 'premium';
+            $user->membership_status = 'active';
+
+            // Kolom ini ada pada beberapa environment migrasi; aman jika tersedia.
+            if (isset($user->start_date)) {
+                $user->start_date = $startDate;
+            }
+            if (isset($user->end_date)) {
+                $user->end_date = $endDate;
+            }
+
+            $user->save();
+        });
 
         return redirect()->route('admin.memberships.index')->with('success', 'Membership berhasil di-approve.');
     }
@@ -139,18 +155,25 @@ class AdminMembershipController extends Controller
         // - users.role=pengguna
         // - users.membership_status=rejected
 
-        $membership->status = self::STATUS_REJECTED;
-        $membership->payment_status = $membership->payment_status ?? 'unpaid';
-        $membership->rejected_at = now();
-        $membership->approved_at = null;
-        $membership->start_date = null;
-        $membership->end_date = null;
-        $membership->save();
+        DB::transaction(function () use ($membership): void {
+            $lockedMembership = MembershipUpgrade::query()
+                ->whereKey($membership->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $user = $membership->user()->firstOrFail();
-        $user->role = 'pengguna';
-        $user->membership_status = self::STATUS_REJECTED;
-        $user->save();
+            $lockedMembership->status = self::STATUS_REJECTED;
+            $lockedMembership->payment_status = $lockedMembership->payment_status ?? 'unpaid';
+            $lockedMembership->rejected_at = now();
+            $lockedMembership->approved_at = null;
+            $lockedMembership->start_date = null;
+            $lockedMembership->end_date = null;
+            $lockedMembership->save();
+
+            $user = User::query()->whereKey($lockedMembership->user_id)->lockForUpdate()->firstOrFail();
+            $user->role = 'pengguna';
+            $user->membership_status = self::STATUS_REJECTED;
+            $user->save();
+        });
 
         return redirect()->route('admin.memberships.index')->with('success', 'Membership berhasil di-reject.');
     }

@@ -145,8 +145,8 @@
             <tbody>
               @forelse($borrowings as $b)
       @php
-        $isOverdue = $b->status === 'paid' && now() > $b->due_date;
-        $daysLate = $isOverdue ? (int) $b->due_date->diffInDays(now()) : 0;
+        $isOverdue = $b->actual_status === 'overdue';
+        $daysLate = (int) ($b->days_late ?? 0);
       @endphp
                 <tr class="border-bottom">
                   <!-- Book -->
@@ -233,7 +233,7 @@
     <div class="d-md-none">
       @forelse($borrowings as $b)
         @php
-          $isOverdue = $b->status === 'paid' && now() > $b->due_date;
+          $isOverdue = $b->actual_status === 'overdue';
         @endphp
         <div class="card border-0 shadow-sm rounded-3 mb-3">
           <div class="card-body">

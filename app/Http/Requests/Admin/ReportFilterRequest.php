@@ -17,7 +17,7 @@ class ReportFilterRequest extends FormRequest
         return [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'status' => ['nullable', 'string', 'in:dipinjam,dikembalikan'],
+            'status' => ['nullable', 'string', 'in:paid,returned'],
         ];
     }
 }

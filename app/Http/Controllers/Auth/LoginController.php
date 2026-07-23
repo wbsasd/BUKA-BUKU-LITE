@@ -32,7 +32,7 @@ class LoginController extends Controller
 
             // Membership check only for normal users (role bukan admin)
             if (($user?->role ?? null) !== 'admin') {
-                if (($user?->membership_status ?? null) !== 'active') {
+                if (!$user?->hasPremiumAccess()) {
                     $this->guard()->logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();

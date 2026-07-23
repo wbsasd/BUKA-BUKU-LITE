@@ -32,7 +32,7 @@ class BorrowingController extends Controller
 
         // Filter by status
         if ($request->filled('status')) {
-            $statusFilter = $request->string('status');
+            $statusFilter = (string) $request->string('status');
             if ($statusFilter === 'overdue') {
                 // Get overdue borrowings
                 $query->where('status', 'paid')->where('due_date', '<', now());
@@ -100,6 +100,15 @@ class BorrowingController extends Controller
     }
 
     public function edit(Borrowing $borrowing): View
+    {
+        return view('admin.borrowings.edit', [
+            'borrowing' => $borrowing,
+            'books' => Book::all(),
+            'users' => User::all(),
+        ]);
+    }
+
+    public function show(Borrowing $borrowing): View
     {
         return view('admin.borrowings.edit', [
             'borrowing' => $borrowing,

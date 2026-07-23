@@ -15,16 +15,19 @@ class EnsureActiveMembershipDuringLogin
         // This middleware is intended to be attached to routes that require auth.
         // For pending/rejected users, we block the request.
         if (Auth::check()) {
+            $user = Auth::user();
+
             // Membership hanya berlaku untuk user biasa. Admin harus lolos.
-            if (Auth::user()?->role === 'admin') {
+            if ($user?->role === 'admin') {
                 return $next($request);
             }
 
-            if (Auth::user()?->membership_status !== 'active') {
+            if (!$user?->hasPremiumAccess()) {
                 Log::info('[MEMBERSHIP BLOCK LOGIN] membership.active.login', [
-                    'email' => Auth::user()?->email,
-                    'role' => Auth::user()?->role,
-                    'membership_status' => Auth::user()?->membership_status,
+                    'email' => $user?->email,
+                    'role' => $user?->role,
+                    'membership_status' => $user?->membership_status,
+                    'has_premium_access' => $user?->hasPremiumAccess(),
                     'path' => $request->path(),
                 ]);
 

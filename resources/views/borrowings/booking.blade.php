@@ -13,7 +13,7 @@
         <div class="col-lg-6">
           <div class="card border-0 shadow-sm p-3">
             <div class="d-flex gap-3">
-              <img src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}" alt="cover" style="width:100px;height:140px;object-fit:cover;border-radius:8px">
+              <img src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.svg') }}" alt="cover" style="width:100px;height:140px;object-fit:cover;border-radius:8px">
               <div>
                 <h6 class="mb-1">{{ $book->title }}</h6>
                 <div class="text-muted small">{{ $book->author }}</div>

@@ -82,7 +82,7 @@
         </a>
       </div>
       <div class="col-sm-6 col-lg-2">
-        <a class="btn btn-bb-primary btn-bb-quick bb-quick-btn" href="#" onclick="return false;">
+        <a class="btn btn-bb-primary btn-bb-quick bb-quick-btn" href="{{ route('admin.categories.create') }}">
           <i class="bi bi-plus-circle"></i>+ Tambah Kategori
         </a>
       </div>

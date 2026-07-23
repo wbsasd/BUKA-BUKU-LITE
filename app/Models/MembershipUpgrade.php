@@ -21,6 +21,8 @@ class MembershipUpgrade extends Model
         'requested_at',
         'approved_at',
         'rejected_at',
+        'start_date',
+        'end_date',
     ];
 
 
@@ -29,6 +31,8 @@ class MembershipUpgrade extends Model
         'requested_at' => 'datetime',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function user(): BelongsTo

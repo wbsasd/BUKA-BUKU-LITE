@@ -79,7 +79,7 @@
                         </div>
 
                         <div class="alert alert-info mt-4 mb-0" role="alert">
-                            Form ini hanya halaman registrasi membership (tanpa proses submit pada tahap ini).
+                            Setelah submit, akun Anda akan dibuat dengan status pending dan menunggu persetujuan admin.
                         </div>
                     </form>
                 </div>

@@ -9,15 +9,13 @@ Route::middleware(['auth', 'membership.active'])->get('/dashboard', function () 
     return app(\App\Http\Controllers\User\DashboardController::class)->index(request());
 })->name('dashboard');
 
-
-// Pinjam buku (mulai baca/reader). Guest dialihkan ke Register oleh middleware.
-Route::middleware(['auth', 'membership.active'])->get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
+// Reader dibuka untuk guest/user agar trial dapat berjalan sesuai flow.
+Route::get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
+Route::get('/reader/{id}/document', [\App\Http\Controllers\User\PdfReaderController::class, 'document'])
+    ->name('reader.document');
 
 // Detail buku
 Route::get('/book/{id}', [\App\Http\Controllers\User\BookDetailController::class, 'show'])->name('book.detail');
-
-// Back-compat: reader juga diproteksi membership (guest diarahkan register).
-Route::middleware(['auth', 'membership.active'])->get('/reader/{id}', [\App\Http\Controllers\User\PdfReaderController::class, 'show'])->name('reader');
 
 // Admin authentication and dashboard
 
@@ -31,7 +29,9 @@ Route::post('/membership/register', [\App\Http\Controllers\MembershipRegistratio
 Route::prefix('admin')->group(function () {
     // Admin login pages (no auth/role middleware)
     Route::get('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('admin.login');
-    Route::post('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'login'])->name('admin.login.post');
+    Route::post('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'login'])
+        ->middleware('throttle:10,1')
+        ->name('admin.login.post');
 
     // Logout: only accessible by authenticated admin users
     Route::post('logout', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])

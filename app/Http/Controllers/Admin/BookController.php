@@ -10,11 +10,17 @@ use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 // use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class BookController extends Controller
 {
+    private const COVER_DISK = 'public';
+    private const PDF_DISK = 'local';
+
 
     public function index(Request $request): View
     {
@@ -68,13 +74,19 @@ class BookController extends Controller
         // Handle uploads (storage for public/asset)
         // Store relative path under public disk, e.g. books/covers/cover.jpg
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('books/covers', 'public');
+            $storedCoverPath = $this->storeUpload($request, 'cover_image', 'books/covers', self::COVER_DISK);
+            if (!empty($storedCoverPath)) {
+                $data['cover_image'] = $storedCoverPath;
+            }
         } else {
             unset($data['cover_image']);
         }
 
         if ($request->hasFile('file_pdf')) {
-            $data['file_pdf'] = $request->file('file_pdf')->store('books/pdf', 'public');
+            $storedPdfPath = $this->storeUpload($request, 'file_pdf', 'books/pdf', self::PDF_DISK);
+            if (!empty($storedPdfPath)) {
+                $data['file_pdf'] = $storedPdfPath;
+            }
         } else {
             unset($data['file_pdf']);
         }
@@ -106,6 +118,8 @@ class BookController extends Controller
     public function update(BookUpdateRequest $request, Book $book): RedirectResponse
     {
         $data = $request->validated();
+        $originalCoverPath = $book->cover_image;
+        $originalPdfPath = $book->file_pdf;
 
         // Resolve kategori_id dari input category_name (buat otomatis jika belum ada)
         $categoryName = $data['category_name'] ?? null;
@@ -118,18 +132,42 @@ class BookController extends Controller
 
         // Handle uploads (public storage for cover, private storage for PDFs).
         if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('books/covers', 'public');
+            $storedCoverPath = $this->storeUpload($request, 'cover_image', 'books/covers', self::COVER_DISK);
+            if (!empty($storedCoverPath)) {
+                $data['cover_image'] = $storedCoverPath;
+            } else {
+                unset($data['cover_image']);
+            }
         } else {
             unset($data['cover_image']);
         }
 
         if ($request->hasFile('file_pdf')) {
-            $data['file_pdf'] = $request->file('file_pdf')->store('books/pdf', 'public');
+            $storedPdfPath = $this->storeUpload($request, 'file_pdf', 'books/pdf', self::PDF_DISK);
+            if (!empty($storedPdfPath)) {
+                $data['file_pdf'] = $storedPdfPath;
+            } else {
+                unset($data['file_pdf']);
+            }
         } else {
             unset($data['file_pdf']);
         }
 
         $book->update($data);
+
+        if (!empty($data['cover_image']) && $data['cover_image'] !== $originalCoverPath) {
+            $this->safeDeleteFile($originalCoverPath, self::COVER_DISK, 'replace-cover', [
+                'book_id' => $book->id,
+                'new_path' => $data['cover_image'],
+            ]);
+        }
+
+        if (!empty($data['file_pdf']) && $data['file_pdf'] !== $originalPdfPath) {
+            $this->safeDeleteFromDisks($originalPdfPath, [self::PDF_DISK, self::COVER_DISK], 'replace-pdf', [
+                'book_id' => $book->id,
+                'new_path' => $data['file_pdf'],
+            ]);
+        }
 
         return redirect()->route('admin.books.index')->with('success', 'Book updated');
     }
@@ -138,9 +176,110 @@ class BookController extends Controller
 
     public function destroy(Book $book): RedirectResponse
     {
+        $coverPath = $book->cover_image;
+        $pdfPath = $book->file_pdf;
+
         $book->delete();
 
+        $this->safeDeleteFile($coverPath, self::COVER_DISK, 'delete-book-cover', [
+            'book_id' => $book->id,
+        ]);
+        $this->safeDeleteFromDisks($pdfPath, [self::PDF_DISK, self::COVER_DISK], 'delete-book-pdf', [
+            'book_id' => $book->id,
+        ]);
+
+        Log::info('Book deleted', [
+            'book_id' => $book->id,
+        ]);
+
         return redirect()->route('admin.books.index')->with('success', 'Book deleted');
+    }
+
+    private function storeUpload(Request $request, string $fieldName, string $directory, string $disk): ?string
+    {
+        if (!$request->hasFile($fieldName)) {
+            return null;
+        }
+
+        try {
+            $path = $request->file($fieldName)->store($directory, $disk);
+
+            if (empty($path)) {
+                Log::warning('Book upload returned empty path', [
+                    'field' => $fieldName,
+                    'directory' => $directory,
+                ]);
+
+                return null;
+            }
+
+            Log::info('Book file uploaded', [
+                'field' => $fieldName,
+                'path' => $path,
+                'disk' => $disk,
+            ]);
+
+            return $path;
+        } catch (Throwable $e) {
+            Log::error('Book file upload failed', [
+                'field' => $fieldName,
+                'directory' => $directory,
+                'disk' => $disk,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function safeDeleteFile(?string $path, string $disk, string $action, array $context = []): void
+    {
+        $normalizedPath = $this->normalizeStoragePath($path);
+        if (empty($normalizedPath)) {
+            return;
+        }
+
+        try {
+            $deleted = Storage::disk($disk)->delete($normalizedPath);
+
+            Log::info('Book file delete attempted', array_merge($context, [
+                'action' => $action,
+                'path' => $normalizedPath,
+                'disk' => $disk,
+                'deleted' => (bool) $deleted,
+            ]));
+        } catch (Throwable $e) {
+            Log::warning('Book file delete failed', array_merge($context, [
+                'action' => $action,
+                'path' => $normalizedPath,
+                'disk' => $disk,
+                'error' => $e->getMessage(),
+            ]));
+        }
+    }
+
+    private function safeDeleteFromDisks(?string $path, array $disks, string $action, array $context = []): void
+    {
+        foreach ($disks as $disk) {
+            $this->safeDeleteFile($path, (string) $disk, $action, $context);
+        }
+    }
+
+    private function normalizeStoragePath(?string $path): ?string
+    {
+        $trimmed = trim((string) $path);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $normalized = str_replace('\\', '/', $trimmed);
+        $normalized = ltrim($normalized, '/');
+
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, 8);
+        }
+
+        return $normalized !== '' ? $normalized : null;
     }
 }
 

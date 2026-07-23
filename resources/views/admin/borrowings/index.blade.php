@@ -140,9 +140,9 @@
         <tbody>
           @forelse($borrowings ?? [] as $b)
             @php
-              $isOverdue = $b->status === 'paid' && now() > $b->due_date;
-              $daysLate = $isOverdue ? (int) $b->due_date->diffInDays(now()) : 0;
-              $fine = $isOverdue ? ((int) $daysLate) * 2000 : 0;
+              $isOverdue = $b->actual_status === 'overdue';
+              $daysLate = (int) ($b->days_late ?? 0);
+              $fine = (int) ($b->fine ?? 0);
             @endphp
             <tr>
               <!-- Cover -->
@@ -257,9 +257,9 @@
 <div class="d-lg-none">
   @forelse($borrowings ?? [] as $b)
     @php
-      $isOverdue = $b->status === 'paid' && now() > $b->due_date;
-      $daysLate = $isOverdue ? (int) $b->due_date->diffInDays(now()) : 0;
-      $fine = $isOverdue ? ((int) $daysLate) * 2000 : 0;
+      $isOverdue = $b->actual_status === 'overdue';
+      $daysLate = (int) ($b->days_late ?? 0);
+      $fine = (int) ($b->fine ?? 0);
     @endphp
     <div class="card border-0 shadow-sm mb-3">
       <div class="card-body">

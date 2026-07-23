@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MembershipUpgradePayRequest;
+use App\Http\Requests\MembershipUpgradeReviewRequest;
 use App\Models\MembershipUpgrade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class MembershipUpgradeController extends Controller
 {
@@ -19,14 +20,8 @@ class MembershipUpgradeController extends Controller
             abort(403);
         }
 
-        // role premium => tidak boleh membuat request baru
-        if (($user->role ?? null) === 'premium') {
-            abort(403);
-        }
-
-        // membership_status selain active => tidak boleh
-        // (pending/rejected tidak boleh; active boleh)
-        if (($user->membership_status ?? null) !== 'active') {
+        // User dengan akses premium aktif tidak boleh membuat request upgrade baru.
+        if ($user->hasPremiumAccess()) {
             abort(403);
         }
 
@@ -64,13 +59,11 @@ class MembershipUpgradeController extends Controller
         return view('membership.upgrade.plans');
     }
 
-    public function review(Request $request)
+    public function review(MembershipUpgradeReviewRequest $request)
     {
         $this->guardCanRequestUpgrade($request);
 
-        $data = $request->validate([
-            'months' => ['required', 'integer', Rule::in([3, 6, 12])],
-        ]);
+        $data = $request->validated();
 
         // Create request record immediately (review step)
         $pricing = $this->planPricing((int)$data['months']);
@@ -93,7 +86,7 @@ class MembershipUpgradeController extends Controller
 
     public function payment(Request $request, MembershipUpgrade $upgrade)
     {
-        abort_if($upgrade->user_id !== Auth::id(), 403);
+        abort_if((int) $upgrade->user_id !== (int) Auth::id(), 403);
 
         // Prevent double-flow while paid request exists
         if ($upgrade->payment_status === 'paid') {
@@ -105,16 +98,14 @@ class MembershipUpgradeController extends Controller
         ]);
     }
 
-    public function pay(Request $request, MembershipUpgrade $upgrade)
+    public function pay(MembershipUpgradePayRequest $request, MembershipUpgrade $upgrade)
     {
-        abort_if($upgrade->user_id !== Auth::id(), 403);
+        abort_if((int) $upgrade->user_id !== (int) Auth::id(), 403);
 
         // requirement: after dummy payment successful,
         // save payment_status=paid and status=pending.
         // NOTE: jangan pernah mengubah users.membership_status ketika upgrade premium.
-        $data = $request->validate([
-            'payment_method' => ['required', 'string', 'max:50'],
-        ]);
+        $data = $request->validated();
 
         $upgrade->payment_method = $data['payment_method'];
         $upgrade->payment_status = 'paid';
@@ -126,7 +117,7 @@ class MembershipUpgradeController extends Controller
 
     public function finish(Request $request, MembershipUpgrade $upgrade)
     {
-        abort_if($upgrade->user_id !== Auth::id(), 403);
+        abort_if((int) $upgrade->user_id !== (int) Auth::id(), 403);
 
         return view('membership.upgrade.finish', [
             'upgrade' => $upgrade,

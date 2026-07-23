@@ -8,6 +8,9 @@ use App\Models\Book;
 use App\Models\Borrowing;
 use App\Models\User;
 use Barryvdh\DomPDF\Facades\Pdf;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class ReportController extends Controller
@@ -37,8 +40,8 @@ class ReportController extends Controller
 
         $booksTotal = Book::count();
         $usersTotal = User::count();
-        $borrowingsDipinjamCount = Borrowing::where('status', 'dipinjam')->count();
-        $pengembalianCount = Borrowing::where('status', 'dikembalikan')
+        $borrowingsDipinjamCount = Borrowing::where('status', 'paid')->count();
+        $pengembalianCount = Borrowing::where('status', 'returned')
             ->whereNotNull('return_date')
             ->count();
 
@@ -84,37 +87,28 @@ class ReportController extends Controller
             ];
         })->values()->all();
 
-        return response()->streamDownload(function () use ($rows) {
-            $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
-            unlink($tempFile);
+        $export = new class($rows) implements FromArray, WithHeadings {
+            public function __construct(private array $rows) {}
 
-            // export via array
-            $export = new class($rows) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
-                public function __construct(private array $rows) {}
-                public function array(array $cells = []): array
-                {
-                    return $this->rows;
-                }
-                public function headings(): array
-                {
-                    return array_keys($this->rows[0] ?? [
-                        'ID Peminjaman' => null,
-                        'Buku' => null,
-                        'Pengguna' => null,
-                        'Tanggal Peminjaman' => null,
-                        'Tanggal Pengembalian' => null,
-                        'Status' => null,
-                    ]);
-                }
-            };
+            public function array(): array
+            {
+                return $this->rows;
+            }
 
-            // Use Laravel Excel facade export
-            \Maatwebsite\Excel\Excel::store($export, basename($tempFile).'.xlsx', 'local', [
-                'visibility' => 'private'
-            ]);
-        }, 'laporan-admin-'.now()->format('Y-m-d_H-i-s').'.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ]);
+            public function headings(): array
+            {
+                return array_keys($this->rows[0] ?? [
+                    'ID Peminjaman' => null,
+                    'Buku' => null,
+                    'Pengguna' => null,
+                    'Tanggal Peminjaman' => null,
+                    'Tanggal Pengembalian' => null,
+                    'Status' => null,
+                ]);
+            }
+        };
+
+        return Excel::download($export, 'laporan-admin-'.now()->format('Y-m-d_H-i-s').'.xlsx');
     }
 
     private function buildBorrowingQuery(array $filters)

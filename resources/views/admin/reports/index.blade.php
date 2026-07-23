@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('content')
+@section('admin.content')
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-12">
@@ -23,8 +23,8 @@
                             <label class="form-label">Status</label>
                             <select name="status" class="form-select">
                                 <option value="" selected>Semua</option>
-                                <option value="dipinjam" @selected(($filters['status'] ?? '')==='dipinjam')>dipinjam</option>
-                                <option value="dikembalikan" @selected(($filters['status'] ?? '')==='dikembalikan')>dikembalikan</option>
+                                <option value="paid" @selected(($filters['status'] ?? '')==='paid')>dipinjam</option>
+                                <option value="returned" @selected(($filters['status'] ?? '')==='returned')>dikembalikan</option>
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-end gap-2">

@@ -22,7 +22,7 @@
     <link href="{{ asset('css/design-system.css') }}" rel="stylesheet">
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
 <body class="bg-guest min-vh-100 d-flex align-items-center justify-content-center py-5">

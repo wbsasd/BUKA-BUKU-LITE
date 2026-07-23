@@ -14,10 +14,8 @@ class EnsureActiveMembership
     {
         if (!Auth::check()) {
             // Flow “Pinjam Buku” untuk guest harus menuju halaman Register.
-            // Di project ini, endpoint register menggunakan URL: /register
-            // Route register pada project ini biasanya berada di URL /register
-            // (laravel default auth scaffolding).
-            return redirect('/register')
+            // Gunakan route membership.register yang memang aktif di project ini.
+            return redirect()->route('membership.register')
                 ->withErrors(['membership' => 'Silakan daftar terlebih dahulu.'])
                 ->withInput();
 
@@ -28,13 +26,14 @@ class EnsureActiveMembership
             return $next($request);
         }
 
-        $membershipStatus = Auth::user()?->membership_status;
+        $user = Auth::user();
 
-        if ($membershipStatus !== 'active') {
+        if (!$user?->hasPremiumAccess()) {
             Log::info('[MEMBERSHIP BLOCK] membership.active', [
-                'email' => Auth::user()?->email,
-                'role' => Auth::user()?->role,
-                'membership_status' => Auth::user()?->membership_status,
+                'email' => $user?->email,
+                'role' => $user?->role,
+                'membership_status' => $user?->membership_status,
+                'has_premium_access' => $user?->hasPremiumAccess(),
                 'path' => $request->path(),
             ]);
 

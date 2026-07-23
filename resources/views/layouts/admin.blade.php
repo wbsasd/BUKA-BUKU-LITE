@@ -25,7 +25,7 @@
 
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
         <!-- Vite manifest not found — loading without Vite (dev fallback). -->
     @endif

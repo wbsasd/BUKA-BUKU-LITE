@@ -40,7 +40,14 @@ class CategoryController extends Controller
 
         Category::create($data);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Category created');
+        return redirect()->route('admin.categories.index')->with('success', 'Category created');
+    }
+
+    public function show(Category $category): View
+    {
+        return view('admin.categories.edit', [
+            'category' => $category,
+        ]);
     }
 
     public function edit(Category $category): View
@@ -58,14 +65,14 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Category updated');
+        return redirect()->route('admin.categories.index')->with('success', 'Category updated');
     }
 
     public function destroy(Category $category): RedirectResponse
     {
         $category->delete();
 
-        return redirect()->route('admin.dashboard')->with('success', 'Category deleted');
+        return redirect()->route('admin.categories.index')->with('success', 'Category deleted');
     }
 }
 

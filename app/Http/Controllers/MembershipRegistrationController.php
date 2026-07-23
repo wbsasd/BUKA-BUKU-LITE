@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class MembershipRegistrationController extends Controller
 {
@@ -39,12 +39,12 @@ class MembershipRegistrationController extends Controller
         // Upload file if provided
         $ktpPath = null;
         if ($request->hasFile('ktp')) {
-            $ktpPath = $request->file('ktp')->store('membership/ktp', 'public');
+            $ktpPath = $request->file('ktp')->store('membership/ktp', 'local');
         }
 
         $selfiePath = null;
         if ($request->hasFile('selfie')) {
-            $selfiePath = $request->file('selfie')->store('membership/selfie', 'public');
+            $selfiePath = $request->file('selfie')->store('membership/selfie', 'local');
         }
 
         // Create user membership request.
@@ -60,6 +60,12 @@ class MembershipRegistrationController extends Controller
         // Jika model/future uses membutuhkan penyimpanan detail membership (ktp/selfie/phone/address/username),
         // saat ini belum ada tabel/kolom yang jelas di project ini, sehingga file disimpan hanya untuk kebutuhan dokumen.
         // (Tidak ada perubahan sistem login/approval admin.)
+        Log::info('Membership registration documents stored', [
+            'user_id' => $user->id,
+            'has_ktp' => !empty($ktpPath),
+            'has_selfie' => !empty($selfiePath),
+            'storage_disk' => 'local',
+        ]);
 
         return redirect()->route('login')->with('success', 'Permohonan membership berhasil diajukan. Status Anda: pending.');
     }

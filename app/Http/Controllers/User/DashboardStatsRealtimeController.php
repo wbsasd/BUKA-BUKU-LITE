@@ -25,8 +25,8 @@ class DashboardStatsRealtimeController extends Controller
         $totalDenda = Borrowing::query()
             ->where('user_id', $user->id)
             ->where('status', '!=', 'returned')
-            ->get()
-            ->sum(function (Borrowing $borrowing) {
+            ->get(['status', 'due_date', 'returned_at', 'return_date'])
+            ->sum(function (Borrowing $borrowing): int {
                 /** @var int $fine */
                 $fine = $borrowing->fine;
                 return (int) $fine;
@@ -47,25 +47,11 @@ class DashboardStatsRealtimeController extends Controller
             ->orderByDesc('requested_at')
             ->first();
 
-        $membershipLabel = 'Basic Member';
+        $membershipLabel = $user->hasPremiumAccess() ? 'Premium' : 'Basic Member';
 
-        if ($latestUpgrade) {
-            // Pending request
-            if (($latestUpgrade->status ?? null) === 'pending') {
-                $membershipLabel = 'Menunggu Approval';
-            } else {
-                // Approved membership => check end_date for active/expired
-                if (($latestUpgrade->status ?? null) === 'approved' && $latestUpgrade->end_date) {
-                    $end = Carbon::parse($latestUpgrade->end_date)->startOfDay();
-
-                    if ($end->gte(now()->startOfDay())) {
-                        $membershipLabel = 'Premium';
-                    } else {
-                        // expired treated as Basic Member per requirement
-                        $membershipLabel = 'Basic Member';
-                    }
-                }
-            }
+        // Jika belum premium, tampilkan state pending dari request terbaru.
+        if ($membershipLabel !== 'Premium' && $latestUpgrade && ($latestUpgrade->status ?? null) === 'pending') {
+            $membershipLabel = 'Menunggu Approval';
         }
 
         return response()->json([

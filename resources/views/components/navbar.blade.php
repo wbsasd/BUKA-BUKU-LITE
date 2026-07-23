@@ -41,14 +41,13 @@
                     @php
                         /** @var \App\Models\User $user */
                         $user = Auth::user();
-                        $roleName = strtolower($user->role ?? 'user');
-                        $isPremium = in_array($roleName, ['premium','anggota premium','premium member']);
+                        $isPremium = $user?->hasPremiumAccess() ?? false;
                         $membershipLabel = $isPremium ? 'Premium' : 'Basic';
                         $notifCount = 3; // dummy
 
                         $avatarUrl = $user->profile_photo
                             ? asset('storage/'.$user->profile_photo)
-                            : asset('images/avatar-default.png');
+                            : asset('images/avatar-default.svg');
 
                         $dashboardUrl = Route::has('dashboard') ? route('dashboard') : '#';
                         $borrowHistoryUrl = Route::has('borrow.history') ? route('borrow.history') : '#';

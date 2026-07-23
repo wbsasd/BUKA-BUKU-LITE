@@ -30,7 +30,7 @@
                     <div class="col-12 col-lg-4">
                         <div class="book-cover-wrapper d-flex align-items-center justify-content-center bg-light p-4">
                             <img
-                                src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.png') }}"
+                                src="{{ $book->cover_image ? asset('storage/'.$book->cover_image) : asset('images/placeholder-cover.svg') }}"
                                 alt="{{ $book->title }}"
                                 class="book-cover rounded shadow-sm"
                             >
@@ -94,13 +94,11 @@
                                             <a href="{{ route('membership.register') }}" class="btn btn-primary">Pinjam Buku</a>
                                         @else
                                             @php
-                                                $membershipStatus = auth()->user()?->membership_status;
+                                                $canBorrow = auth()->user()?->hasPremiumAccess() ?? false;
                                             @endphp
 
-                                            @if($membershipStatus === 'pending')
-                                                <a href="#" class="btn btn-primary" onclick="alert('Menunggu persetujuan admin.'); return false;">Pinjam Buku</a>
-                                            @elseif($membershipStatus === 'rejected')
-                                                <a href="#" class="btn btn-primary" onclick="alert('Permintaan membership Anda ditolak.'); return false;">Pinjam Buku</a>
+                                            @if(!$canBorrow)
+                                                <a href="#" class="btn btn-primary" onclick="alert('Akses premium belum aktif. Silakan tunggu persetujuan admin atau upgrade membership.'); return false;">Pinjam Buku</a>
                                             @else
                                                 @if((int) $book->stock > 0)
                                                     <a href="{{ route('borrow.booking', $book) }}" class="btn btn-primary">Pinjam Buku</a>
@@ -237,7 +235,7 @@
                     <div class="row row-cols-1 row-cols-md-2 g-3">
                         @forelse($reviews as $review)
                             @php
-                                $isOwner = auth()->check() && auth()->id() === $review->user_id;
+                                $isOwner = auth()->check() && (int) auth()->id() === (int) $review->user_id;
                                 $userName = $review->user?->name ?? 'Pengguna';
                             @endphp
                             <div class="col">
@@ -301,7 +299,7 @@
                                 <div class="related-book-card h-100 border-0 shadow-sm">
                                     <div class="related-book-cover">
                                         <img
-                                            src="{{ $related->cover_image ? asset('storage/'.$related->cover_image) : asset('images/placeholder-cover.png') }}"
+                                            src="{{ $related->cover_image ? asset('storage/'.$related->cover_image) : asset('images/placeholder-cover.svg') }}"
                                             alt="{{ $related->title }}"
                                         >
                                     </div>

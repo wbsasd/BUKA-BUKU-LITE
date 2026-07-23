@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BorrowBookingRequest;
+use App\Http\Requests\BorrowExtendRequest;
+use App\Http\Requests\BorrowPayRequest;
 use App\Models\Book;
 use App\Models\Borrowing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BorrowController extends Controller
 {
@@ -14,11 +18,9 @@ class BorrowController extends Controller
         return view('borrowings.booking', ['book' => $book]);
     }
 
-    public function storeBooking(Request $request, Book $book)
+    public function storeBooking(BorrowBookingRequest $request, Book $book)
     {
-        $data = $request->validate([
-            'duration' => ['required', 'in:3,7,14,30'],
-        ]);
+        $data = $request->validated();
 
         // Booking hanya membuat record borrowing (pending), tapi wajib validasi stok dulu.
         // Jika stok habis, proses dibatalkan dan stok tidak pernah diubah.
@@ -50,39 +52,55 @@ class BorrowController extends Controller
 
     public function payment(Borrowing $borrowing)
     {
-        abort_if($borrowing->user_id !== Auth::id(), 403);
+        abort_if((int) $borrowing->user_id !== (int) Auth::id(), 403);
 
         return view('borrowings.payment', ['borrowing' => $borrowing]);
     }
 
-    public function pay(Request $request, Borrowing $borrowing)
+    public function pay(BorrowPayRequest $request, Borrowing $borrowing)
     {
-        abort_if($borrowing->user_id !== Auth::id(), 403);
+        abort_if((int) $borrowing->user_id !== (int) Auth::id(), 403);
 
-        $data = $request->validate([
-            'payment_method' => ['required', 'string'],
-        ]);
+        $data = $request->validated();
 
         // Check if this is an extension payment
         $extendingBorrowingId = session('extending_borrowing_id');
 
         if ($extendingBorrowingId) {
-            // Extension payment: tidak mengubah stok karena buku yang sama sudah dipinjam.
-            $originalBorrowing = Borrowing::findOrFail($extendingBorrowingId);
+            DB::transaction(function () use ($borrowing, $data, $extendingBorrowingId): void {
+                // Extension payment: tidak mengubah stok karena buku yang sama sudah dipinjam.
+                $lockedExtension = Borrowing::query()
+                    ->whereKey($borrowing->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $borrowing->payment_method = $data['payment_method'];
-            $borrowing->status = 'paid';
-            $borrowing->borrowed_at = now();
-            $borrowing->due_date = now()->addDays($borrowing->duration);
-            $borrowing->borrow_date = $borrowing->borrowed_at;
-            $borrowing->return_date = $borrowing->due_date;
-            $borrowing->save();
+                if ($lockedExtension->status !== 'pending') {
+                    return;
+                }
 
-            $originalBorrowing->due_date = $borrowing->due_date;
-            $originalBorrowing->duration = $originalBorrowing->duration + $borrowing->duration;
-            $originalBorrowing->warning_sent = false;
-            $originalBorrowing->warning_sent_at = null;
-            $originalBorrowing->save();
+                $originalBorrowing = Borrowing::query()
+                    ->whereKey($extendingBorrowingId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($originalBorrowing->status !== 'paid') {
+                    return;
+                }
+
+                $lockedExtension->payment_method = $data['payment_method'];
+                $lockedExtension->status = 'paid';
+                $lockedExtension->borrowed_at = now();
+                $lockedExtension->due_date = now()->addDays((int) $lockedExtension->duration);
+                $lockedExtension->borrow_date = $lockedExtension->borrowed_at;
+                $lockedExtension->return_date = $lockedExtension->due_date;
+                $lockedExtension->save();
+
+                $originalBorrowing->due_date = $lockedExtension->due_date;
+                $originalBorrowing->duration = (int) $originalBorrowing->duration + (int) $lockedExtension->duration;
+                $originalBorrowing->warning_sent = false;
+                $originalBorrowing->warning_sent_at = null;
+                $originalBorrowing->save();
+            });
 
             session()->forget('extending_borrowing_id');
 
@@ -90,18 +108,20 @@ class BorrowController extends Controller
         }
 
         // Normal payment (new borrowing): satu-satunya proses pengurangan stok.
-        \DB::transaction(function () use ($borrowing, $data) {
-            // Ambil kembali borrowing beserta relasi untuk memastikan konsistensi
-            $borrowing->refresh();
+        DB::transaction(function () use ($borrowing, $data) {
+            $lockedBorrowing = Borrowing::query()
+                ->whereKey($borrowing->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             // Pastikan tidak terjadi double payment.
-            if ($borrowing->status !== 'pending') {
+            if ($lockedBorrowing->status !== 'pending') {
                 return;
             }
 
             // Lock buku agar aman dari race condition
             $book = Book::query()
-                ->where('id', $borrowing->book_id)
+                ->where('id', $lockedBorrowing->book_id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -118,13 +138,13 @@ class BorrowController extends Controller
             $book->save();
 
             // Update borrowing seperti flow yang sudah ada
-            $borrowing->payment_method = $data['payment_method'];
-            $borrowing->status = 'paid';
-            $borrowing->borrowed_at = now();
-            $borrowing->due_date = now()->addDays($borrowing->duration);
-            $borrowing->borrow_date = $borrowing->borrowed_at;
-            $borrowing->return_date = $borrowing->due_date;
-            $borrowing->save();
+            $lockedBorrowing->payment_method = $data['payment_method'];
+            $lockedBorrowing->status = 'paid';
+            $lockedBorrowing->borrowed_at = now();
+            $lockedBorrowing->due_date = now()->addDays((int) $lockedBorrowing->duration);
+            $lockedBorrowing->borrow_date = $lockedBorrowing->borrowed_at;
+            $lockedBorrowing->return_date = $lockedBorrowing->due_date;
+            $lockedBorrowing->save();
         });
 
         return redirect()->route('borrow.finish', $borrowing);
@@ -133,7 +153,7 @@ class BorrowController extends Controller
 
     public function finish(Borrowing $borrowing)
     {
-        abort_if($borrowing->user_id !== Auth::id(), 403);
+        abort_if((int) $borrowing->user_id !== (int) Auth::id(), 403);
 
         return view('borrowings.finish', ['borrowing' => $borrowing]);
     }
@@ -151,26 +171,29 @@ class BorrowController extends Controller
     public function returnBook(Request $request, Borrowing $borrowing)
     {
         // Validate ownership
-        abort_if($borrowing->user_id !== Auth::id(), 403);
+        abort_if((int) $borrowing->user_id !== (int) Auth::id(), 403);
 
-        \DB::transaction(function () use ($borrowing) {
-            $borrowing->refresh();
+        DB::transaction(function () use ($borrowing) {
+            $lockedBorrowing = Borrowing::query()
+                ->whereKey($borrowing->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             // Validate status is paid and not already returned
-            if ($borrowing->status !== 'paid') {
+            if ($lockedBorrowing->status !== 'paid') {
                 return;
             }
 
             // Lock buku agar aman dari race condition dan pastikan stok konsisten
             $book = Book::query()
-                ->where('id', $borrowing->book_id)
+                ->where('id', $lockedBorrowing->book_id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
             // Set status returned
-            $borrowing->status = 'returned';
-            $borrowing->returned_at = now();
-            $borrowing->save();
+            $lockedBorrowing->status = 'returned';
+            $lockedBorrowing->returned_at = now();
+            $lockedBorrowing->save();
 
             // Tambah stok 1 kali
             $book->stock = (int) $book->stock + 1;
@@ -190,10 +213,10 @@ class BorrowController extends Controller
     }
 
 
-    public function extendBook(Request $request, Borrowing $borrowing)
+    public function extendBook(BorrowExtendRequest $request, Borrowing $borrowing)
     {
         // Validate ownership
-        abort_if($borrowing->user_id !== Auth::id(), 403);
+        abort_if((int) $borrowing->user_id !== (int) Auth::id(), 403);
 
         // Validate status is paid (can only extend active borrowing)
         if ($borrowing->status !== 'paid') {
@@ -201,9 +224,7 @@ class BorrowController extends Controller
                 ->with('error', 'Hanya buku yang masih dipinjam yang bisa diperpanjang');
         }
 
-        $data = $request->validate([
-            'extend_duration' => ['required', 'in:3,7,14,30'],
-        ]);
+        $data = $request->validated();
 
         $prices = [
             3 => 10000,
@@ -214,6 +235,18 @@ class BorrowController extends Controller
 
         $duration = (int) $data['extend_duration'];
         $price = $prices[$duration] ?? 0;
+
+        $hasPendingExtension = Borrowing::query()
+            ->where('user_id', Auth::id())
+            ->where('book_id', $borrowing->book_id)
+            ->where('status', 'pending')
+            ->where('id', '!=', $borrowing->id)
+            ->exists();
+
+        if ($hasPendingExtension) {
+            return redirect()->route('borrow.history')
+                ->with('error', 'Masih ada perpanjangan yang belum dibayar untuk buku ini.');
+        }
 
         // Create a new borrowing record for the extension
         $extension = Borrowing::create([

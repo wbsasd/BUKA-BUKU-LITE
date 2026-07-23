@@ -72,7 +72,7 @@
                         @endphp
                         <option value="all" @selected($current === 'all')>Semua</option>
                         <option value="pending" @selected($current === 'pending')>Pending</option>
-                        <option value="active" @selected($current === 'active')>Approved</option>
+                        <option value="approved" @selected($current === 'approved')>Approved</option>
                         <option value="rejected" @selected($current === 'rejected')>Rejected</option>
                         <option value="expired" @selected($current === 'expired')>Expired</option>
                     </select>
