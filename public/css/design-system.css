@@ -377,7 +377,7 @@ button.btn-primary {
 .bb-cover { width:56px; height:78px; border-radius:14px; overflow:hidden; border: 1px solid rgba(15,23,42,0.08); flex:0 0 auto; }
 .bb-cover img{ width:100%; height:100%; object-fit:cover; }
 
-.bb-truncate-2{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.bb-truncate-2{ display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
 .bb-timeline{ border-radius: 18px; border: 1px solid rgba(17, 94, 245, 0.10); background:#fff; }
 
@@ -387,5 +387,166 @@ button.btn-primary {
 
 @media (max-width: 991.98px) {
   .bb-right-col,.bb-continue-col{ padding-left: 0; padding-right: 0; }
+}
+
+/* =====================================
+   Responsive Hardening (Guest/User/Public)
+   ===================================== */
+
+html, body {
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+.bb-app-shell {
+  width: 100%;
+  max-width: 1450px;
+  padding: 96px clamp(12px, 2.5vw, 24px) 24px;
+}
+
+.bb-navbar .container-fluid {
+  padding-left: clamp(12px, 2vw, 24px);
+  padding-right: clamp(12px, 2vw, 24px);
+}
+
+.bb-navbar .navbar-brand {
+  min-width: 0;
+}
+
+.bb-navbar .navbar-collapse {
+  min-width: 0;
+}
+
+.bb-avatar-dropdown {
+  width: min(340px, calc(100vw - 24px));
+}
+
+.bb-notif-dropdown {
+  width: min(340px, calc(100vw - 24px));
+  min-width: 0;
+}
+
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+}
+
+.card,
+.card-body,
+.btn,
+.form-control,
+.form-select,
+.dropdown-item,
+.badge {
+  word-break: break-word;
+}
+
+.form-control,
+.form-select,
+.btn {
+  min-height: 42px;
+}
+
+.btn.btn-sm {
+  min-height: 36px;
+}
+
+.bb-book-card .card-img-top {
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+@media (max-width: 991.98px) {
+  .bb-dashboard-wrap {
+    padding: 0 12px 24px;
+  }
+
+  .bb-navbar {
+    height: auto;
+    min-height: 72px;
+  }
+
+  .bb-navbar .navbar-collapse {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(15,23,42,0.08);
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 12px 24px rgba(2, 6, 23, 0.08);
+  }
+
+  .bb-navbar .navbar-nav {
+    row-gap: 4px;
+  }
+
+  .bb-navbar .navbar-collapse > .d-flex {
+    margin-top: 8px;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px !important;
+  }
+
+  .dashboard-hero {
+    min-height: 0;
+    height: auto;
+  }
+
+  .bb-continue-item .d-flex.align-items-center.gap-4 {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .bb-cover-lg {
+    width: 100%;
+    max-width: 120px;
+    height: 160px;
+  }
+
+  .bb-book-title {
+    max-width: 100%;
+  }
+
+  .pdf-canvas-container {
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .bb-app-shell {
+    padding: 84px 12px 16px;
+  }
+
+  .bb-navbar .navbar-collapse > .d-flex {
+    flex-wrap: wrap;
+  }
+
+  .bb-navbar .navbar-collapse > .d-flex > .dropdown,
+  .bb-navbar .navbar-collapse > .d-flex > a.btn {
+    flex: 1 1 auto;
+  }
+
+  .bb-navbar .dropdown-menu-end {
+    right: 0;
+    left: auto;
+  }
+
+  .bb-dashboard-bg .row {
+    --bs-gutter-x: 0.75rem;
+  }
+
+  .pdf-overlay .card {
+    width: calc(100% - 24px);
+  }
 }
 

@@ -31,9 +31,9 @@
     @endif
 </head>
 <body class="bg-light">
-    <div class="d-flex" style="min-height: 100vh;">
+    <div class="d-flex min-vh-100">
         <!-- Admin Sidebar (admin-only) -->
-        <aside class="bb-desktop-sidebar" style="width:250px;">
+        <aside class="bb-desktop-sidebar">
             <x-sidebar title="Admin">
 
                 <a class="bb-nav-link {{ request()->routeIs('admin.dashboard') ? 'bb-active' : '' }}" href="{{ route('admin.dashboard') }}">
@@ -204,7 +204,7 @@
 
 
             <!-- Admin Content -->
-            <main class="container-fluid py-4">
+            <main class="container-fluid bb-admin-main">
                 @yield('admin.content')
             </main>
         </div>

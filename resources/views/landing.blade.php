@@ -11,7 +11,7 @@
         <div class="row align-items-center g-4">
           <div class="col-12 col-lg-7">
             <div class="p-2 p-md-3">
-              <h1 class="fw-bold text-white mb-3" style="font-size: clamp(44px, 4.6vw, 56px); line-height: 1.1;">
+              <h1 class="fw-bold text-white mb-3" style="font-size: clamp(32px, 4.6vw, 56px); line-height: 1.1;">
                 Selamat datang<br>di Buka Buku Lite
               </h1>
 

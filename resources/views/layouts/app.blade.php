@@ -50,8 +50,8 @@
 
         {{-- content --}}
         <div class="d-flex justify-content-center">
-            <div class="container-fluid" style="max-width:1450px;width:100%;padding:24px; padding-top:96px;">
-                <main style="width:100%;">
+            <div class="container-fluid bb-app-shell">
+                <main class="w-100">
                     @yield('content')
                 </main>
             </div>

@@ -31,7 +31,7 @@
                 </li>
             </ul>
 
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3 flex-wrap flex-lg-nowrap">
                 {{-- RIGHT SIDE --}}
                 @guest
                     @if(Route::has('login'))
@@ -63,7 +63,7 @@
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size:11px;">{{ $notifCount }}</span>
                         </a>
 
-                        <div class="dropdown-menu dropdown-menu-end bb-dropdown-fade" style="min-width:340px;">
+                        <div class="dropdown-menu dropdown-menu-end bb-dropdown-fade bb-notif-dropdown">
                             <div class="px-3 py-2">
                                 <div class="fw-semibold">Notifications</div>
                                 <div class="small text-muted">Aktivitas terbaru</div>

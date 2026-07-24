@@ -308,5 +308,98 @@ body.bg-light{background:linear-gradient(180deg,#f8fbff 0%, #f3f7ff 100%) !impor
 /* Bootstrap uses fixed positioning for backdrop and modal; avoid adding
    extra stacking rules that can create new stacking contexts. */
 
+/* =====================================
+   Responsive Hardening (Admin)
+   ===================================== */
+
+.bb-admin-main {
+  padding: 1.5rem;
+}
+
+.bb-topbar .container-fluid {
+  min-width: 0;
+}
+
+.bb-topbar .dropdown-menu {
+  max-width: calc(100vw - 24px);
+}
+
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+}
+
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+@media (max-width: 1199.98px) {
+  .bb-summary .bb-summary-value {
+    font-size: 22px;
+  }
+
+  .bb-quick-btn {
+    padding: 12px 10px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .bb-admin-main {
+    padding: 1rem 0.75rem;
+  }
+
+  .bb-topbar .bb-admin-title {
+    font-size: 1rem;
+  }
+
+  .bb-topbar .bb-admin-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .offcanvas {
+    width: min(300px, 86vw) !important;
+  }
+
+  .bb-card-soft,
+  .bb-admin-card,
+  .card {
+    border-radius: 14px;
+  }
+
+  .bb-notif-list {
+    min-width: 0;
+    width: min(320px, calc(100vw - 24px));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .bb-admin-main {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .bb-topbar .container-fluid {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .bb-topbar .btn.bb-icon-btn,
+  .bb-topbar .btn.btn-bb-outline.btn-sm {
+    min-height: 36px;
+  }
+
+  .table {
+    font-size: 0.875rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .modal-dialog {
+    margin: 0.75rem;
+  }
+}
+
 
 

@@ -12,6 +12,7 @@
       Halaman Settings tersedia. Karena belum ada model/table setting di repo, data belum bisa ditampilkan.
     </div>
 
+    <div class="table-responsive">
     <table class="table table-bordered table-striped">
       <thead>
         <tr>
@@ -34,6 +35,7 @@
         @endforelse
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 @endsection

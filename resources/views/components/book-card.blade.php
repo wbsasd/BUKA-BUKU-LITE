@@ -1,6 +1,6 @@
 @props(['bookId' => null, 'title' => 'Judul Buku', 'author' => '', 'cover' => null, 'year' => null, 'rating' => null])
 
-<div class="card h-100 shadow-sm">
+<div class="card h-100 shadow-sm bb-book-card">
   @if($cover)
     @if($bookId)
       <a href="{{ route('book.detail', ['id' => $bookId]) }}" class="d-block">

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid py-4">
   <div class="row">
-    <main class="col-12 col-md-7">
+    <main class="col-12 col-lg-8">
       <div class="card pdf-reader-wrapper">
         <div class="card-body">
           <div id="pdfViewer" class="pdf-viewer text-center mb-3">
@@ -16,7 +16,7 @@
                   </div>
                   <div class="small text-muted d-flex align-items-center gap-2">
                     <label for="pageNumberInput" class="mb-0">Halaman</label>
-                    <input id="pageNumberInput" type="number" min="1" class="form-control form-control-sm" style="width:70px;" value="1">
+                    <input id="pageNumberInput" type="number" min="1" class="form-control form-control-sm" style="width:72px;" value="1">
                     <span>/</span>
                     <span id="totalPages">1</span>
                   </div>
@@ -50,7 +50,7 @@
       </div>
     </main>
 
-    <aside class="col-12 col-md-3">
+    <aside class="col-12 col-lg-4 mt-3 mt-lg-0">
       <div class="card mb-3">
         <div class="card-body">
           <h5>Informasi Buku</h5>

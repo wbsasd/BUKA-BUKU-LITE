@@ -8,7 +8,8 @@
         <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">Tambah User</a>
       </div>
 
-      <table class="table">
+      <div class="table-responsive">
+      <table class="table align-middle">
         <thead>
           <tr>
             <th>Nama</th>
@@ -28,6 +29,7 @@
               <td>{{ $user->membership ?? '-' }}</td>
               <td>{{ $user->status ?? 'active' }}</td>
               <td>
+                <div class="d-flex flex-wrap gap-1">
                 <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
                 <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Edit</a>
 
@@ -71,11 +73,13 @@
                   @method('DELETE')
                   <button class="btn btn-sm btn-outline-danger" type="submit">Hapus</button>
                 </form>
+                </div>
               </td>
             </tr>
           @endforeach
         </tbody>
       </table>
+      </div>
 
       {{ $users->links() }}
     </div>
